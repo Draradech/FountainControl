@@ -43,11 +43,12 @@ receiver acceptance still determine whether a fountain delivers to them.
 ## Installation
 
 **Install UE4SS first.** Download the standard
-[UE4SS v3.0.1-946-g265115c0 zip](https://github.com/UE4SS-RE/RE-UE4SS/releases/download/experimental/UE4SS_v3.0.1-946-g265115c0.zip)
+[UE4SS zip from the latest experimental release](https://github.com/UE4SS-RE/RE-UE4SS/releases/tag/experimental-latest)
 and extract it into the game's `AlchemyFactory/Binaries/Win64` folder, beside
 `AlchemyFactory-Win64-Shipping.exe`. This places `dwmapi.dll` and the `ue4ss`
-folder there. Alchemy Factory also needs the UE 5.7 settings and signature
-fixes described in [Force Pull's UE4SS setup instructions](https://www.nexusmods.com/alchemyfactory/mods/28).
+folder there. With the tested build **v3.0.1-1161-g6eb3d9bc**, the default
+settings work: the engine version is detected automatically, and no custom
+signatures or UE4SS setting changes are needed.
 The [official UE4SS installation guide](https://docs.ue4ss.com/dev/installation-guide.html)
 explains the folder layout. On Proton, add
 `WINEDLLOVERRIDES="dwmapi=n,b" %command%` to the game's Steam launch options.
@@ -57,9 +58,9 @@ Once UE4SS is installed:
 1. Close the game and extract the FountainControl zip.
 2. Copy its **FountainControl** folder into `ue4ss/Mods/`.
    The resulting folder should contain `dlls/main.dll`, `Scripts/` and
-   `config.ini`, directly inside `ue4ss/Mods/FountainControl/`.
-3. Add `FountainControl : 1` to `ue4ss/Mods/mods.txt`.
-4. Launch the game, aim at an upright fountain and press **E**.
+   `config.ini` and `enabled.txt`, directly inside `ue4ss/Mods/FountainControl/`.
+   The included `enabled.txt` enables the mod; no `mods.txt` edit is needed.
+3. Launch the game, aim at an upright fountain and press **E**.
 
 ## Configuration
 
@@ -98,12 +99,12 @@ Workshop upload/download round trip has not yet been tested.
 
 ## Compatibility and troubleshooting
 
-Version **0.1.4** was tested with **Alchemy Factory 1.0.4963 / Steam build
-25321648**, Unreal Engine 5.7.4 and **UE4SS v3.0.1-946-g265115c0**, including
+Version **0.1.5** was tested with **Alchemy Factory 1.0.4963 / Steam build
+25321648**, Unreal Engine 5.7.4 and **UE4SS v3.0.1-1161-g6eb3d9bc**, including
 Proton Experimental. It is an experimental singleplayer mod.
 
 If the View prompt or controls do not appear, check the folder layout,
-`FountainControl : 1` in `mods.txt`, and the installed UE4SS version.
+`enabled.txt` in the FountainControl folder, and the installed UE4SS version.
 `ue4ss/UE4SS.log` and `ue4ss/Mods/FountainControl/FountainControl.log` contain
 startup information. An `Unsupported game executable` message means your
 game build differs from the supported one; the mod needs an update before

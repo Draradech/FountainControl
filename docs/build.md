@@ -18,7 +18,7 @@ python3 -m venv .tools/venv
 
 Review Microsoft's CRT/SDK license before using the acceptance flag. Bootstrap
 fetches xwin 0.10.0, fmt 10.2.1 and MinHook 1.3.4 with pinned SHA256 checksums,
-and UE4SS at commit `265115c05bfcc75f96d8a1f4beda105a7d2753b1`. It obtains MSVC
+and UE4SS at commit `6eb3d9bc3346ba01f7191612b5812e0e47a3bbe1`. It obtains MSVC
 14.44 and Windows SDK 10.0.26100 through xwin. Dependencies remain in `.tools/`.
 
 `build.py` defaults to the installed game's `ue4ss/UE4SS.dll`; override with

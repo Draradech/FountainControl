@@ -9,7 +9,7 @@ import urllib.request
 
 root=Path(__file__).resolve().parents[1]
 cache=root/'.tools'
-commit='265115c05bfcc75f96d8a1f4beda105a7d2753b1'
+commit='6eb3d9bc3346ba01f7191612b5812e0e47a3bbe1'
 
 def run(*args):
     subprocess.run([str(a) for a in args],check=True,cwd=root)

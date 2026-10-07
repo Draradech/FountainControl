@@ -14,9 +14,5 @@ for folder in ('dlls', 'Scripts'):
     shutil.copytree(source / folder, target / folder, dirs_exist_ok=True)
 if not (target / 'config.ini').exists():
     shutil.copy2(source / 'config.ini', target / 'config.ini')
-mods = args.ue4ss_dir / 'Mods/mods.txt'
-text = mods.read_text()
-if not any(line.split(':')[0].strip() == 'FountainControl' for line in text.splitlines()):
-    text = 'FountainControl : 1\n' + text
-    mods.write_text(text)
+shutil.copy2(source / 'enabled.txt', target / 'enabled.txt')
 print(target)

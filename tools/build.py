@@ -83,6 +83,7 @@ def main():
         'msvcprt.lib', 'kernel32.lib', 'bcrypt.lib')
     (out / 'main.lib').unlink(missing_ok=True)
     shutil.copy2(ROOT / 'config.ini', out.parent / 'config.ini')
+    shutil.copy2(ROOT / 'enabled.txt', out.parent / 'enabled.txt')
     shutil.copytree(ROOT / 'Scripts', out.parent / 'Scripts', dirs_exist_ok=True)
     shutil.copytree(ROOT / 'LICENSES', out.parent / 'LICENSES', dirs_exist_ok=True)
     shutil.copytree(ROOT / 'docs', out.parent / 'docs', dirs_exist_ok=True)
