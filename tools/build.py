@@ -50,7 +50,7 @@ def main():
     run('/usr/lib/llvm-18/bin/llvm-dlltool', '-m', 'i386:x86-64',
         '-d', build / 'UE4SS.def', '-l', build / 'UE4SS.lib')
     includes = [build / 'include', ROOT / 'src', UE / 'UE4SS/include',
-                TOOLS / 'fmt-10.2.1/include']
+                TOOLS / 'fmt-10.2.1/include', TOOLS / 'minhook-1.3.4/include']
     includes += sorted((UE / 'deps/first').glob('*/include'))
     system = [SDK / 'crt/include'] + [SDK / 'sdk/include' / x for x in ('ucrt', 'shared', 'um', 'winrt')]
     options = ['--target=x86_64-pc-windows-msvc', '-std=c++20', '-O2', '-g',
@@ -62,6 +62,11 @@ def main():
     for include in system:
         options += ['-isystem', str(include)]
     objects = []
+    for source in [*(TOOLS / 'minhook-1.3.4/src').glob('*.c'), TOOLS / 'minhook-1.3.4/src/hde/hde64.c']:
+        obj = build / (source.stem + '.obj')
+        c_options = [x for x in options if x != '-std=c++20']
+        run('clang', *c_options, '-c', source, '-o', obj)
+        objects.append(obj)
     for source in sorted((ROOT / 'src').glob('*.cpp')):
         obj = build / (source.stem + '.obj')
         run('clang++', *options, '-c', source, '-o', obj)
@@ -74,7 +79,7 @@ def main():
         '/libpath:' + str(SDK / 'sdk/lib/um/x86_64'),
         '/libpath:' + str(SDK / 'sdk/lib/ucrt/x86_64'),
         *objects, build / 'UE4SS.lib', 'msvcrt.lib', 'vcruntime.lib', 'ucrt.lib',
-        'msvcprt.lib', 'kernel32.lib')
+        'msvcprt.lib', 'kernel32.lib', 'bcrypt.lib')
     shutil.copy2(ROOT / 'config.ini', out.parent / 'config.ini')
     shutil.copytree(ROOT / 'Scripts', out.parent / 'Scripts', dirs_exist_ok=True)
     print(out / 'main.dll')

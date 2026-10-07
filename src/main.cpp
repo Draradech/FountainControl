@@ -3,20 +3,36 @@
 #include <fstream>
 #include <Mod/CppUserModBase.hpp>
 #include <LuaMadeSimple/LuaMadeSimple.hpp>
+#include "native.hpp"
 
 namespace {
 std::filesystem::path mod_path;
 bool remove_exclusion = true;
 bool development = false;
 
-void log(const char* message) {
+void write_log(const char* message) {
     std::ofstream(mod_path / "FountainControl.log", std::ios::app) << message << '\n';
 }
 
 int native_info(const RC::LuaMadeSimple::Lua& lua) {
     lua.set_string("FountainControl native bridge 0.1.0");
     lua.set_bool(remove_exclusion);
-    return 2;
+    lua.set_bool(fc::ready());
+    return 3;
+}
+
+int native_set(const RC::LuaMadeSimple::Lua& lua) {
+    auto pointer = reinterpret_cast<void*>(lua.get_integer());
+    double drop = lua.get_number(), horizontal = lua.get_number();
+    fc::set_facility(pointer, {std::clamp(drop,0.,1000.),horizontal > 500 ? -1 : horizontal});
+    return 0;
+}
+int native_remove(const RC::LuaMadeSimple::Lua& lua) { fc::remove_facility(reinterpret_cast<void*>(lua.get_integer())); return 0; }
+int native_reset(const RC::LuaMadeSimple::Lua&) { fc::reset(); return 0; }
+int native_hash(const RC::LuaMadeSimple::Lua& lua) {
+    auto input = lua.get_string();
+    auto result = fc::fingerprint(std::filesystem::path(std::u8string_view(reinterpret_cast<const char8_t*>(input.data()),input.size())));
+    lua.set_string(result); return 1;
 }
 
 int native_root(const RC::LuaMadeSimple::Lua& lua) {
@@ -28,7 +44,7 @@ int native_root(const RC::LuaMadeSimple::Lua& lua) {
 
 int native_read(const RC::LuaMadeSimple::Lua& lua) {
     auto address = static_cast<uintptr_t>(lua.get_integer(1));
-    auto length = static_cast<size_t>(lua.get_integer(2));
+    auto length = static_cast<size_t>(lua.get_integer(1));
     MEMORY_BASIC_INFORMATION mbi{};
     if (!development || length > 16384 || !VirtualQuery(reinterpret_cast<void*>(address), &mbi, sizeof mbi)
         || mbi.State != MEM_COMMIT || (mbi.Protect & (PAGE_NOACCESS | PAGE_GUARD))
@@ -57,9 +73,9 @@ public:
                                  (mod_path / "config.ini").c_str());
         remove_exclusion = _wcsicmp(value, L"false") != 0 && wcscmp(value, L"0") != 0;
         development = GetPrivateProfileIntW(L"Development", L"EnableCommands", 0, (mod_path / "config.ini").c_str()) != 0;
-        log("DLL constructed; UE4SS ABI initialized");
+        write_log("DLL constructed; UE4SS ABI initialized");
     }
-    void on_unreal_init() override { log("Unreal initialized"); }
+    void on_unreal_init() override { write_log("Unreal initialized"); fc::initialize(remove_exclusion); }
     void on_lua_start(RC::StringViewType name, RC::LuaMadeSimple::Lua& lua,
                       RC::LuaMadeSimple::Lua& main_lua, RC::LuaMadeSimple::Lua& async_lua,
                       RC::LuaMadeSimple::Lua* hook_lua) override {
@@ -68,15 +84,21 @@ public:
             state.register_function("FCNativeInfo", native_info);
             state.register_function("FCNativeRoot", native_root);
             state.register_function("FCNativeRead", native_read);
+            state.register_function("FCSetFacility", native_set);
+            state.register_function("FCRemoveFacility", native_remove);
+            state.register_function("FCResetFacilities", native_reset);
+            state.register_function("FCFingerprint", native_hash);
         };
         register_bridge(lua);
         if (&main_lua != &lua) register_bridge(main_lua);
         if (&async_lua != &lua && &async_lua != &main_lua) register_bridge(async_lua);
         if (hook_lua && hook_lua != &lua && hook_lua != &main_lua && hook_lua != &async_lua) register_bridge(*hook_lua);
-        log("Lua native bridge registered");
+        write_log("Lua native bridge registered");
     }
 };
 }
+
+void fc::log(const std::string& message) { write_log(message.c_str()); }
 
 extern "C" __declspec(dllexport) RC::CppUserModBase* start_mod() { return new FountainControl(); }
 extern "C" __declspec(dllexport) void uninstall_mod(RC::CppUserModBase* mod) { delete mod; }

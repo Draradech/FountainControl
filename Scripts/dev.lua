@@ -17,7 +17,7 @@ return function(root)
             if not fn then log(error); return end
             local ok, error = pcall(fn)
             if not ok then log(error) end
-        end)
+        end, EGameThreadMethod.EngineTick)
     end)
     local function hook(path, callback)
         local ok, error = pcall(RegisterHook, path, callback)
@@ -25,12 +25,6 @@ return function(root)
     end
     hook('/Script/BeltTD.BeltTDActivatableWidget:SetContextActor', function(context, actor)
         log('UI context: ' .. context:get():GetFullName() .. ' actor=' .. actor:get():GetFullName())
-    end)
-    hook('/Script/BeltTD.AsyncSaveGame:BTDAsyncSaveGameToSlot', function(context, subsystem, info, world, slot)
-        log('SAVE world=' .. world:get():ToString() .. ' slot=' .. slot:get():ToString())
-    end)
-    hook('/Script/BeltTD.AsyncLoadGame:BTDAsyncLoadGameFromSlot', function(context, subsystem, world, slot)
-        log('LOAD world=' .. tostring(world:get()) .. ' slot=' .. tostring(slot:get()))
     end)
     log('Local development commands enabled')
 end
