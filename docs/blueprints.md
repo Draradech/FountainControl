@@ -19,7 +19,8 @@ copies them to the newly assigned building IDs, where ordinary save companions
 take over. Empty import sessions also suppress ordinary clone lookup by source
 ID, preventing collisions with unrelated buildings in the destination world.
 Leaving the clone selection or reloading a world clears that import context.
-Preview placement does not register live fountain settings.
+Both ordinary and cost-free construction copy settings. The clone function's
+last argument bypasses costs; it is not a preview flag.
 
 The hooks cover `PackToBlueprint` (including the ByIndex wrapper), both native
 EnterBlueprintMode paths, the common PNG reader, selection clearing, and the

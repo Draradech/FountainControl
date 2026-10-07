@@ -99,10 +99,10 @@ std::optional<Limits> blueprint_limits(const BlueprintSession& session,void* rec
     for (auto& entry:session.settings) if (entry.identity==identity) return entry.limits;
     return {};
 }
-bool clone(void* controller,const Vec* position,uint8_t rotation,void* command,bool preview) {
+bool clone(void* controller,const Vec* position,uint8_t rotation,void* command,bool ignore_cost) {
     auto previous=cloning;
     cloning.reset();
-    if (!preview) {
+    {
         uint32_t source=field<uint32_t>(command,0x1ac);
         std::scoped_lock lock(mutex);
         auto imported=blueprint_sessions.find(controller);
@@ -113,7 +113,7 @@ bool clone(void* controller,const Vec* position,uint8_t rotation,void* command,b
             if (found!=remembered.end()) cloning=found->second;
         }
     }
-    bool result=original_clone(controller,position,rotation,command,preview);
+    bool result=original_clone(controller,position,rotation,command,ignore_cost);
     cloning=previous;
     return result;
 }
@@ -161,15 +161,20 @@ std::filesystem::path blueprint_companion(std::filesystem::path png) {
 void* read_blueprint(void* out,void* directory,void* filename) {
     auto path=std::filesystem::path(unreal_string(directory))/unreal_string(filename);
     void* result=original_read_blueprint(out,directory,filename);
-    if (!entering_blueprint || !field<bool>(out,0)) return result;
+    if ((!entering_blueprint && !packing_blueprint) || !field<bool>(out,0)) return result;
     void* state=static_cast<char*>(out)+0x50;
     int count=field<int>(state,8);
+    // Editing a saved blueprint serializes its loaded records, not the current
+    // world selection. Preserve that file's companion before its PNG changes.
+    if (packing_blueprint) *packing_blueprint=blueprint::Companion{count,{}};
     auto companion=blueprint_companion(path);
     std::ifstream file(companion,std::ios::binary);
     if (!file) return result;
     std::string text(1048577,'\0'); file.read(text.data(),text.size()); text.resize(file.gcount());
     auto data=blueprint::decode(text,fingerprint(path),count);
     if (!data) { log("Invalid or stale blueprint companion; using defaults"); return result; }
+    if (packing_blueprint) *packing_blueprint=*data;
+    if (!entering_blueprint) return result;
     auto records=field<char*>(state,0);
     if (count && !records) return result;
     for (auto [index,limits]:data->fountains)
@@ -525,6 +530,23 @@ bool clone_probe(void* subsystem,void* state,uint32_t key,Vec position) {
     return clone(state,&position,0,p,false);
 }
 std::array<uint64_t,3> flight_stats() { return {repaired_counts[0].load(),repaired_counts[1].load(),repaired_counts[2].load()}; }
+int blueprint_place_probe(void* state,Vec position,uint8_t rotation,bool ignore_cost) {
+    if (!active || !state || rotation>3) return -1;
+    auto controller_class=address<void*(*)()>(0x1449bcb80)();
+    if (!address<void*(*)(void*,void*)>(0x1415272f0)(state,controller_class)) return -1;
+    void* selection=static_cast<char*>(state)+0x2d8;
+    int count=field<int>(selection,8);
+    if (count<0 || count>100000) return -1;
+    auto records=field<char*>(selection,0);
+    int placed=0;
+    for (int index=0;records && index<count;++index) {
+        alignas(16) std::array<char,0x218> packet{};
+        std::memcpy(packet.data(),records+index*0x200,0x200);
+        std::memcpy(packet.data()+0x200,static_cast<char*>(selection)+0x10,0x14);
+        if (clone(state,&position,rotation,packet.data(),ignore_cost)) ++placed;
+    }
+    return placed;
+}
 void remove_facility(void* f) { std::scoped_lock lock(mutex); facilities.erase(f); building_keys.erase(f); actor_classes.erase(f); }
 void reset() { std::scoped_lock lock(mutex); facilities.clear(); building_keys.clear(); actor_classes.clear(); remembered.clear(); interactions.clear(); blueprint_sessions.clear(); pending_interaction=0; }
 void set_interaction(void* component,void* actor) {

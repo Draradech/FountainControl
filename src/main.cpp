@@ -79,6 +79,12 @@ int native_clone(const RC::LuaMadeSimple::Lua& lua) {
     fc::Vec position{lua.get_number(),lua.get_number(),lua.get_number()};
     lua.set_bool(development && fc::clone_probe(subsystem,controller,key,position)); return 1;
 }
+int native_blueprint_place(const RC::LuaMadeSimple::Lua& lua) {
+    auto state=reinterpret_cast<void*>(lua.get_integer());
+    fc::Vec position{lua.get_number(),lua.get_number(),lua.get_number()};
+    auto rotation=static_cast<uint8_t>(lua.get_integer()); bool ignore_cost=lua.get_bool();
+    lua.set_integer(development ? fc::blueprint_place_probe(state,position,rotation,ignore_cost) : -1); return 1;
+}
 int native_hash(const RC::LuaMadeSimple::Lua& lua) {
     auto input = lua.get_string();
     auto result = fc::fingerprint(std::filesystem::path(std::u8string_view(reinterpret_cast<const char8_t*>(input.data()),input.size())));
@@ -152,6 +158,7 @@ public:
             state.register_function("FCFlightStats", native_stats);
             state.register_function("FCProbeDeliver", native_deliver);
             state.register_function("FCProbeClone", native_clone);
+            state.register_function("FCProbeBlueprintPlace", native_blueprint_place);
             state.register_function("FCFingerprint", native_hash);
             state.register_function("FCSetSaveRoot", native_save_root);
         };
