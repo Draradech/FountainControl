@@ -1,6 +1,6 @@
 # FountainControl
 
-A UE4SS mod for Alchemy Factory's upright Arcane Fountain. Version 0.1.0 is
+A UE4SS mod for Alchemy Factory's upright Arcane Fountain. Version 0.1.1 is
 an experimental build, tested in a separate copy of a singleplayer world.
 This directory is an independent Git repository.
 
@@ -31,8 +31,9 @@ Copy `dist/FountainControl` to `ue4ss/Mods/FountainControl` and add
 `FountainControl : 1` to `ue4ss/Mods/mods.txt`. Keep both `dlls/main.dll` and
 `Scripts/`; the DLL and Lua companion work together. Restart the game.
 
-Open an upright fountain's normal interface to adjust **Drop limit** and
-**Horizontal limit**. No additional hotkeys are required. Changes take effect
+Aim at an upright fountain and press the game's Inspect key (`E` by default)
+to adjust **Drop limit** and **Horizontal limit**. Escape closes the interface.
+The mod adds the normal View prompt and honors the game's input mapping. Changes take effect
 immediately and are captured by the next successful game save.
 
 `config.ini` contains the startup setting:

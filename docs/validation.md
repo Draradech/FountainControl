@@ -1,4 +1,4 @@
-# Validation of 0.1.0
+# Validation through 0.1.1
 
 Validated on 2026-10-07 with Steam build 25321648, Alchemy Factory 1.0.4963,
 UE 5.7.4, UE4SS v3.0.1-946-g265115c0 and Proton Experimental. Integration
@@ -17,8 +17,8 @@ world's save files were not edited.
 | Ordinary clone | The native clone/build path copied 350 cm drop and 150 cm horizontal limits to a new building ID. |
 | Cut/move | Actual selection, cut and placement through the game UI preserved those limits after the source was destroyed and a new building ID created. |
 | Range indicator | Zero, 50 and 250 cm caps produced the corresponding radius; 500 cm and Default restored the original ring when it was already smaller than the cap. |
-| Interface | The existing fountain panel displayed both controls and restored 3.5 m / 1.5 m settings. A mouse interaction selected Default; the controls hid for an ordinary hopper. Width, background and readable labels were checked in a screenshot. |
-| Mod-free load | A save made with the mod loaded into normal gameplay after disabling FountainControl and restarting. UE4SS itself remained installed. |
+| Interface in 0.1.1 | A fountain advertised View and the normal Inspect key (`E`) opened its controls. Escape closed it. Mouse input selected Default; 3.5 m / 1.5 m restored correctly. The bank portal’s complete slider textures/style and native frame were reused in the left, vertically centered interaction area. Ordinary storage layout restoration was checked. |
+| Mod-free load | A save made with the mod loaded into normal gameplay after disabling FountainControl and restarting. UE4SS itself remained installed. Repeated after adding runtime Inspect components in 0.1.1. |
 
 The indicator uses each actor's actual mesh bounds and original scale. Two
 observed rendered baselines were approximately 480.204 and 479.724 cm; the
@@ -72,3 +72,13 @@ This is an experimental, executable-pinned build rather than a claim of broad
 compatibility across game updates or long play sessions. The earlier UE4SS
 async callback abort was addressed by moving all polling onto the game thread;
 subsequent restarts and integration sessions used that corrected scheduling.
+
+## Interface correction in 0.1.1
+
+The 0.1.0 interface check opened a widget through a development command. It
+missed the lack of an ordinary fountain interaction, and used GameLayer instead
+of the game’s GameMenu furniture layer. Version 0.1.1 adds a runtime Inspect
+component, opens the proper layer through actual keyboard input, and replaces
+the generic sliders and plain background with the bank portal’s native style.
+The geometry and persistence results above remain applicable; their logic did
+not change.

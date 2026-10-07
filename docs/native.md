@@ -8,6 +8,7 @@ SHA256: `66618d029654d125723c95e8e62919f267973ad881e24abff3b80e0b355a52f8`.
 
 | Integration | Address |
 |---|---|
+| ScriptInteractionComponent primary interaction | 0x144a24200 |
 | Fountain reach predicate | 0x144a1e1d0 |
 | Compatible receiver selection | 0x144a19500 |
 | Fountain product launch | 0x144a073d0 |
@@ -66,9 +67,22 @@ leave the live registration map.
 
 ## Reflection and UI
 
-Lua registers only settled upright fountains with MovePattern 2. It appends
-two native UMG sliders to the active `WBP_StoragePanel_C`, hides them for other
-contexts, and polls integer positions on the game thread. The indicator's
+Lua registers only settled upright fountains with MovePattern 2. It adds a
+runtime ScriptInteractionComponent advertising Inspect, using the game's
+normal input mapping and focus/range checks. The native primary interaction
+hook queues only registered fountain owners; other script interactions retain
+their original delegate dispatch. Lua consumes the request on the game thread
+and opens StorageInspectWidget in the normal GameMenu layer. GameLayer bypasses
+the native furniture layout and must not be used.
+
+For a fountain, the storage widget's original children are collapsed and a
+single replacement body uses the bank portal's complete Slider WidgetStyle
+and frame brush from its cooked WidgetTree template. The normal fountain title
+brush is reused. The panel is 600 UI units wide, centered in the left interaction
+area, and original storage children are restored on exit. No bank widget is
+opened to obtain its assets. Integer slider positions are polled on the game
+thread. Runtime interaction components have no save fields and are recreated
+when fountains are discovered after load. The indicator's
 original world scale and local mesh bounds define the rendered baseline.
 Its XY scale uses min(1, cap / baseline radius); Default restores the baseline.
 Building identity distinguishes a new mesh at a recycled UObject address.
