@@ -1,84 +1,125 @@
 # FountainControl
 
-A UE4SS mod for Alchemy Factory's upright Arcane Fountain. Version 0.1.3 is
-an experimental build, tested in a separate copy of a singleplayer world.
-This directory is an independent Git repository.
+Give Alchemy Factory's upright Arcane Fountains adjustable range limits, and
+allow them to feed receivers near or directly below them.
 
-## Behaviour
+Aim at a fountain and press **E** (the game's Inspect key) to open its controls.
+Changes take effect immediately. FountainControl supports singleplayer;
+hanging fountains and other launchers are unaffected.
 
-- Per-fountain drop limit: 0–1000 cm, displayed as 0.0–10.0 m, in 0.5 m steps.
-- Per-fountain horizontal limit: 0–500 cm, displayed as 0.0–5.0 m, in 0.5 m
-  steps, followed by a final **Default** slider position that applies no
-  extra horizontal cap. Default does not limit lower targets to the visible
-  ring's radius.
-- Placement ghosts preview each fountain's horizontal range during quick copy,
-  bulk copy, cut/move and blueprint placement, including rotated groups.
-- Shrink the existing range indicator when the chosen horizontal limit is
-  smaller than its original rendered radius.
-- Global startup INI option `RemoveCenterExclusion`, enabled by default.
-  Disabling it retains the original throw model with the distance limits.
-- Default fountain settings: 1000 cm drop and Default horizontal range.
-- Moving preserves settings; cloning copies settings.
-- Saved blueprints embed both limits inside the PNG. Share one file, including
-  through Workshop; imported fountains adopt their own saved limits.
-- Store settings in one JSON companion per save, keyed by persistent building
-  ID and bound to the save's fingerprint. Do not alter game save contents or
-  serialization flags. Missing or mismatched companions use defaults.
-- Singleplayer only. Hanging fountains and other launchers are outside scope.
+## What it does
 
-Distances are measured from the fountain's world emission point to the
-receiver's catch point. UI uses metres; stored and native values use cm.
+- **Drop limit:** choose how far below the fountain it can deliver, from
+  **0 to 10 m** in **0.5 m** steps.
+- **Horizontal limit:** choose **0 to 5 m** in **0.5 m** steps, or **Default**
+  to keep the game's full horizontal reach. Use this to keep a fountain
+  feeding its own production chain.
+- **Remove the central exclusion:** enabled by default, allowing delivery
+  into the normally unreachable region near the fountain's centre.
+- **Range previews:** smaller horizontal limits shrink the existing range
+  ring. Copy, move and blueprint ghosts show each fountain's configured ring.
+- **Copy and share settings:** moving preserves limits, copying duplicates
+  them, and saved blueprint PNGs carry them when shared, including through
+  Workshop. No extra blueprint file is needed.
 
-## Install and configure
+New fountains use **10 m drop** and **Default horizontal range**. Distances are
+measured from the fountain's emission point to the receiver's catch point.
+With Default horizontal range, lower receivers can be reached beyond the
+visible ring; the ring does not describe the entire three-dimensional range.
 
-Copy `dist/FountainControl` to `ue4ss/Mods/FountainControl` and add
-`FountainControl : 1` to `ue4ss/Mods/mods.txt`. Keep both `dlls/main.dll` and
-`Scripts/`; the DLL and Lua companion work together. Restart the game.
+## Original and corrected range
 
-Aim at an upright fountain and press the game's Inspect key (`E` by default)
-to adjust **Drop limit** and **Horizontal limit**. Escape closes the interface.
-The mod adds the normal View prompt and honors the game's input mapping. Changes take effect
-immediately and are captured by the next successful game save.
+The original fountain has an unreachable region around its vertical axis,
+which becomes wider for receivers farther above or below the emission point.
+FountainControl fills that region while retaining the original outer reach
+and maximum drop. Your two sliders can restrict that range further.
 
-`config.ini` contains the startup setting:
+![Vertical cross-sections of the original fountain range with its central exclusion, and FountainControl's corrected range with the centre filled.](docs/images/fountain-range.png)
+
+The comparison uses the default limits with `RemoveCenterExclusion = true`.
+The shaded areas describe possible receiver positions; item filters and
+receiver acceptance still determine whether a fountain delivers to them.
+
+## Installation
+
+**Install UE4SS first.** Download the standard
+[UE4SS v3.0.1-946-g265115c0 zip](https://github.com/UE4SS-RE/RE-UE4SS/releases/download/experimental/UE4SS_v3.0.1-946-g265115c0.zip)
+and extract it into the game's `AlchemyFactory/Binaries/Win64` folder, beside
+`AlchemyFactory-Win64-Shipping.exe`. This places `dwmapi.dll` and the `ue4ss`
+folder there. Alchemy Factory also needs the UE 5.7 settings and signature
+fixes described in [Force Pull's UE4SS setup instructions](https://www.nexusmods.com/alchemyfactory/mods/28).
+The [official UE4SS installation guide](https://docs.ue4ss.com/dev/installation-guide.html)
+explains the folder layout. On Proton, add
+`WINEDLLOVERRIDES="dwmapi=n,b" %command%` to the game's Steam launch options.
+
+Once UE4SS is installed:
+
+1. Close the game and extract the FountainControl zip.
+2. Copy its **FountainControl** folder into `ue4ss/Mods/`.
+   The resulting folder should contain `dlls/main.dll`, `Scripts/` and
+   `config.ini`, directly inside `ue4ss/Mods/FountainControl/`.
+3. Add `FountainControl : 1` to `ue4ss/Mods/mods.txt`.
+4. Launch the game, aim at an upright fountain and press **E**.
+
+Keep the DLL and Scripts folder together. If you changed the game's Inspect
+binding, use that key instead of E. **Escape** closes the controls.
+
+## Configuration
+
+The two distance limits are set separately for each fountain in its interface.
+To keep the game's central exclusion, open
+`ue4ss/Mods/FountainControl/config.ini` and change this setting:
 
 ```ini
 [UprightFountains]
-RemoveCenterExclusion = true
+RemoveCenterExclusion = false
 ```
 
-Set it to `false` and restart to retain the original central exclusion.
-The two per-fountain limits continue to apply. Development commands are off
-in the distributed configuration.
+Restart the game after changing this option. The distance sliders remain
+available with either value. Change it back to `true` to fill the centre again.
 
-Settings live beside each save, for example `AutoSave0.fountains.json` beside
-`AutoSave0.sav`. Copy the matching pair when moving saves between computers.
-An absent, invalid or fingerprint-mismatched companion uses defaults.
-Removing the mod leaves the native save loadable; the companion is ignored.
-Saving without the mod can invalidate that slot's companion because its
-fingerprint no longer matches the new `.sav`.
+## Saves and blueprints
 
-## Supported versions and scope
+Fountain settings are saved automatically with the next successful game save.
+They live in a small file beside each save, for example
+`AutoSave0.fountains.json` beside `AutoSave0.sav`. **Copy both files when moving
+or backing up saves** if you want to retain your limits.
 
-Tested with Steam build 25321648, game 1.0.4963, UE 5.7.4 and
-UE4SS v3.0.1-946-g265115c0. The DLL verifies the complete executable SHA256
-before installing any native hook. A different executable disables the
-integration and logs `Unsupported game executable` in `FountainControl.log`.
-Updates require checking addresses, layouts and behavior before adding support.
+The game's save format is unchanged, and saves still load without the mod.
+A missing or invalid settings file makes fountains use the defaults. Saving
+that slot without FountainControl can also make its previous settings file
+out of date, so re-enabling the mod may restore defaults for that slot.
 
-This mod handles the upright `BP_SmartCannon_C`, MovePattern 2. Ordinary
-in-world cloning and cut/move preserve limits, including when a move creates
-a new building ID. Saved blueprint PNGs carry limits across worlds, including
-when source building IDs collide with unrelated destination buildings. Existing
-blueprints without embedded settings use defaults.
-Multiplayer and hanging fountains are outside scope.
+Blueprint settings are stored **inside the PNG**. Share the game's exported
+PNG directly; image editors can remove its embedded data. Older blueprints
+without FountainControl settings use the defaults. The PNG was tested with
+the mod disabled, and the Workshop upload path was checked; an online
+Workshop upload/download round trip has not yet been tested.
 
-The DLL hooks native range, selection, throws, visuals, save completion and
-cloning. Lua uses reflection for actor discovery, companion loading and two
-sliders appended to the game's existing storage panel. Polling runs on the
-game thread. No Unreal installation, asset packs or save-schema changes are
-needed.
+## Compatibility and troubleshooting
 
-See [build instructions](docs/build.md), [validation](docs/validation.md) and
-[native implementation notes](docs/native.md) and [blueprint format](docs/blueprints.md). Build and investigation
-milestones are committed in this repository.
+Version **0.1.3** was tested with **Alchemy Factory 1.0.4963 / Steam build
+25321648**, Unreal Engine 5.7.4 and **UE4SS v3.0.1-946-g265115c0**, including
+Proton Experimental. It is an experimental singleplayer mod.
+
+If the View prompt or controls do not appear, check the folder layout,
+`FountainControl : 1` in `mods.txt`, and the installed UE4SS version.
+`ue4ss/UE4SS.log` and `ue4ss/Mods/FountainControl/FountainControl.log` contain
+startup information. An `Unsupported game executable` message means your
+game build differs from the supported one; the mod needs an update before
+it can operate on that build.
+
+For more detail, see the [validation notes](docs/validation.md),
+[build instructions](docs/build.md), [native implementation](docs/native.md)
+and [blueprint format](docs/blueprints.md).
+
+## AI usage disclosure
+
+This project was developed with substantial assistance from **OpenAI Codex**.
+Codex investigated the game's native fountain behavior, wrote the mod code,
+build tools and tests, ran automated and controlled in-game checks, and
+prepared the documentation and range graphs.
+
+**draradech** defined the features and compatibility requirements, supplied
+object dumps and in-game measurements, made the design decisions, and tested
+and reviewed the interface and behavior, guiding corrections and further work.
