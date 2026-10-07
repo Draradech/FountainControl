@@ -78,9 +78,18 @@ available with either value. Change it back to `true` to fill the centre again.
 ## Saves and blueprints
 
 Fountain settings are saved automatically with the next successful game save.
-They live in a small file beside each save, for example
-`AutoSave0.fountains.json` beside `AutoSave0.sav`. **Copy both files when moving
-or backing up saves** if you want to retain your limits.
+Each world's save folder contains a **FountainControl** subfolder with a
+settings file named after each save:
+
+```text
+SaveGames/<world>/AutoSave0.sav                 ← game save
+SaveGames/<world>/FountainControl/AutoSave0.sav ← fountain settings
+```
+
+**Steam Cloud syncs these settings files** along with the game saves when
+cloud synchronization is enabled. The game ignores the FountainControl
+subfolder. **Copy the entire world folder, including that subfolder, when
+moving or backing up saves** to retain your limits.
 
 The game's save format is unchanged, and saves still load without the mod.
 A missing or invalid settings file makes fountains use the defaults. If you
@@ -98,7 +107,7 @@ online Workshop upload/download round trip has not been tested.
 
 ## Compatibility and troubleshooting
 
-Version **0.1.6** was tested with **Alchemy Factory 1.0.4963 / Steam build
+Version **0.1.7** was tested with **Alchemy Factory 1.0.4963 / Steam build
 25321648**, Unreal Engine 5.7.4 and **UE4SS v3.0.1-1161-g6eb3d9bc**, including
 Proton Experimental.
 

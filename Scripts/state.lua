@@ -50,7 +50,7 @@ return function(root)
         FC.settings={}; FCResetFacilities()
         if world=='' or slot=='' then return end
         local save=subsystem:GetGameSlotFilePath(world,slot,0):ToString()
-        local companion=save:gsub('%.sav$','.fountains.json')
+        local companion=save:gsub('([^/\\]+)$','FountainControl/%1')
         local file=io.open(companion,'rb')
         if not file then return end
         local text=file:read(1048577); file:close()

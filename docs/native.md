@@ -51,8 +51,18 @@ the native nearby-target cache.
 Native save begin snapshots live registered fountains by SettleKey. The native
 completion callback commits the companion only when SaveGameToSlot actually
 succeeds, after the `.sav` writer closes. It computes SHA256, writes schema 1
-JSON to a temporary file and replaces the companion atomically. Native
-serialization and SaveGame property flags are untouched.
+JSON to `<world>/FountainControl/<slot>.sav.tmp` and atomically replaces
+`<world>/FountainControl/<slot>.sav`. The world is the native save's parent
+directory, and the companion retains the native save's filename. The
+FountainControl directory is created on the first successful save. Directory
+or write failures are logged and leave the native save usable.
+
+The `.sav` filename matches Alchemy Factory's recursive Steam Auto-Cloud rule
+for SaveGames. The companion still contains schema 1 JSON, and the game
+ignores the subfolder. Native serialization and SaveGame property flags are
+untouched. Lua reads only this nested location; no legacy-path migration or
+fallback is provided. Fingerprints always cover the native save, not the
+companion. Temporary `.sav.tmp` files do not match the cloud rule.
 
 SettleKeys persist across save/load and game sessions for surviving buildings
 within a world. Lua validates the companion schema and each record's data

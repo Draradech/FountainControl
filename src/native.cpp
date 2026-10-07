@@ -302,14 +302,20 @@ void save_complete(void* context) {
     if (snapshot && field<bool>(context,0x1c)) {
         auto hash=fingerprint(snapshot->save);
         if (!hash.empty()) {
-            auto companion=snapshot->save; companion.replace_extension(L".fountains.json");
-            auto temporary=companion; temporary+=L".tmp";
-            std::ofstream file(temporary,std::ios::binary|std::ios::trunc);
-            file << "{\"schema\":1,\"fingerprint\":\"" << hash << "\",\"fountains\":" << snapshot->settings << "}\n";
-            file.close();
-            if (file && MoveFileExW(temporary.c_str(),companion.c_str(),MOVEFILE_REPLACE_EXISTING|MOVEFILE_WRITE_THROUGH))
-                log("Save companion committed");
-            else log("Failed to write save companion; native save remains usable");
+            auto companion=snapshot->save.parent_path() / L"FountainControl" / snapshot->save.filename();
+            std::error_code error;
+            std::filesystem::create_directories(companion.parent_path(),error);
+            if (error) {
+                log("Failed to create FountainControl save directory; native save remains usable");
+            } else {
+                auto temporary=companion; temporary+=L".tmp";
+                std::ofstream file(temporary,std::ios::binary|std::ios::trunc);
+                file << "{\"schema\":1,\"fingerprint\":\"" << hash << "\",\"fountains\":" << snapshot->settings << "}\n";
+                file.close();
+                if (file && MoveFileExW(temporary.c_str(),companion.c_str(),MOVEFILE_REPLACE_EXISTING|MOVEFILE_WRITE_THROUGH))
+                    log("Save companion committed");
+                else log("Failed to write save companion; native save remains usable");
+            }
         } else log("Completed save could not be fingerprinted; companion skipped");
     }
     original_save_complete(context);

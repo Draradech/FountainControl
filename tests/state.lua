@@ -4,13 +4,16 @@ LoopInGameThreadWithDelay=function() end
 FCResetFacilities=function() end
 FCGetNativeLimits=function() return false,1000,-1 end
 local fingerprint='test-fingerprint'
-FCFingerprint=function() return fingerprint end
+FCFingerprint=function(path)
+ assert(path==temporary..'/SaveGame0.sav','Fingerprint must refer to the native save')
+ return fingerprint
+end
 local warnings={}
 FCLog=function(message) warnings[#warnings+1]=message end
 local FC=dofile(root..'/Scripts/state.lua')(root)
 local subsystem={WorldTitleName={ToString=function()return 'world'end},ReloadedName={ToString=function()return 'SaveGame0'end},
  GetGameSlotFilePath=function()return {ToString=function()return temporary..'/SaveGame0.sav'end}end}
-local path=temporary..'/SaveGame0.fountains.json'
+local path=temporary..'/FountainControl/SaveGame0.sav'
 local function load(text)
  local file=assert(io.open(path,'wb')); file:write(text); file:close()
  FC.load_settings(subsystem)
@@ -52,6 +55,23 @@ end
 assert(#warnings==3,'Each mismatched load must log one warning')
 os.remove(path); FC.load_settings(subsystem); assert(next(FC.settings)==nil)
 assert(#warnings==3,'Missing companion must not emit a recovery warning')
+-- Both slash styles returned by Unreal must locate the nested companion.
+local open=io.open
+for _,case in ipairs({
+ {'C:\\Saves\\world\\AutoSave2.sav','C:\\Saves\\world\\FountainControl/AutoSave2.sav'},
+ {'C:/Saves/world/SaveGame9.sav','C:/Saves/world/FountainControl/SaveGame9.sav'},
+ {'C:\\Saves/world\\SaveGame0.sav','C:\\Saves/world\\FountainControl/SaveGame0.sav'},
+}) do
+ io.open=function(name,mode)
+  assert(name==case[2] and mode=='rb','Companion must use the world subfolder and original filename')
+  return nil
+ end
+ local mock={WorldTitleName=subsystem.WorldTitleName,ReloadedName=subsystem.ReloadedName,
+  GetGameSlotFilePath=function()return {ToString=function()return case[1] end}end}
+ FC.load_settings(mock)
+end
+io.open=open
+print('Companion paths: nested .sav, native checksum, Windows and mixed separators passed')
 FCGetNativeLimits=function()return true,340,160 end
 local actor={GetSettleKey=function()return 123 end}
 assert(FC.get(actor).drop==340 and FC.get(actor).horizontal==160,'Cloned settings must enter Lua state')
