@@ -8,8 +8,7 @@ import subprocess
 import sys
 
 root=Path(__file__).resolve().parents[1]
-sys.path.insert(0,str(root.parent/'research'))
-from verify_fountain_range import NativePredicate
+from native_predicate import NativePredicate
 build=root/'build'
 build.mkdir(exist_ok=True)
 subprocess.run(['clang++','-std=c++20','-O2','-shared','-fPIC','-I',str(root/'src'),str(root/'tests/trajectory_bridge.cpp'),'-o',str(build/'trajectory.so')],check=True)

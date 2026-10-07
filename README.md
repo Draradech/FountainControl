@@ -1,9 +1,10 @@
 # FountainControl
 
-A UE4SS mod for Alchemy Factory's upright Arcane Fountain. Development is
-in progress. This directory is an independent Git repository.
+A UE4SS mod for Alchemy Factory's upright Arcane Fountain. Version 0.1.0 is
+an experimental build, tested in a separate copy of a singleplayer world.
+This directory is an independent Git repository.
 
-## Intended behaviour
+## Behaviour
 
 - Per-fountain drop limit: 0–1000 cm, displayed as 0.0–10.0 m, in 0.5 m steps.
 - Per-fountain horizontal limit: 0–500 cm, displayed as 0.0–5.0 m, in 0.5 m
@@ -24,20 +25,54 @@ in progress. This directory is an independent Git repository.
 Distances are measured from the fountain's world emission point to the
 receiver's catch point. UI uses metres; stored and native values use cm.
 
-## Development approach
+## Install and configure
 
-Build a UE4SS C++ DLL for native hooks, with a Lua companion where reflection
-and existing widgets make integration simpler. Keep investigation facilities
-in the mod so successful probes can become production integration. Native
-hooks must verify the executable and target instructions before installation.
+Copy `dist/FountainControl` to `ue4ss/Mods/FountainControl` and add
+`FountainControl : 1` to `ue4ss/Mods/mods.txt`. Keep both `dlls/main.dll` and
+`Scripts/`; the DLL and Lua companion work together. Restart the game.
 
-The parent project's `research/` directory documents the verified native
-geometry and addresses for Steam build 25321648, UE 5.7.4, game 1.0.4963,
-UE4SS v3.0.1-946-g265115c0.
+Open an upright fountain's normal interface to adjust **Drop limit** and
+**Horizontal limit**. No additional hotkeys are required. Changes take effect
+immediately and are captured by the next successful game save.
 
-## Required validation
+`config.ini` contains the startup setting:
 
-Native trajectory and eligibility agreement (including vertical throws),
-real delivery at boundaries, slider and indicator behaviour, save/load,
-building movement/cloning, autosave slot rotation, stale companions, and
-unmodified game loading. Build and probe progress is tracked in Git commits.
+```ini
+[UprightFountains]
+RemoveCenterExclusion = true
+```
+
+Set it to `false` and restart to retain the original central exclusion.
+The two per-fountain limits continue to apply. Development commands are off
+in the distributed configuration.
+
+Settings live beside each save, for example `AutoSave0.fountains.json` beside
+`AutoSave0.sav`. Copy the matching pair when moving saves between computers.
+An absent, invalid or fingerprint-mismatched companion uses defaults.
+Removing the mod leaves the native save loadable; the companion is ignored.
+Saving without the mod can invalidate that slot's companion because its
+fingerprint no longer matches the new `.sav`.
+
+## Supported versions and scope
+
+Tested with Steam build 25321648, game 1.0.4963, UE 5.7.4 and
+UE4SS v3.0.1-946-g265115c0. The DLL verifies the complete executable SHA256
+before installing any native hook. A different executable disables the
+integration and logs `Unsupported game executable` in `FountainControl.log`.
+Updates require checking addresses, layouts and behavior before adding support.
+
+This mod handles the upright `BP_SmartCannon_C`, MovePattern 2. Ordinary
+in-world cloning and cut/move preserve limits, including when a move creates
+a new building ID. Imported blueprints do not carry companion settings from
+another world; cross-world blueprint behavior has not been validated.
+Multiplayer and hanging fountains are outside scope.
+
+The DLL hooks native range, selection, throws, visuals, save completion and
+cloning. Lua uses reflection for actor discovery, companion loading and two
+sliders appended to the game's existing storage panel. Polling runs on the
+game thread. No Unreal installation, asset packs or save-schema changes are
+needed.
+
+See [build instructions](docs/build.md), [validation](docs/validation.md) and
+[native implementation notes](docs/native.md). Build and investigation
+milestones are committed in this repository.

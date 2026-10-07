@@ -24,8 +24,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--ue4ss', type=Path, default=Path.home() / '.local/share/Steam/steamapps/common/Alchemy Factory/AlchemyFactory/Binaries/Win64/ue4ss/UE4SS.dll')
     args = parser.parse_args()
-    sys.path.insert(0, str(ROOT.parent / 'research/.venv/lib/python3.12/site-packages'))
     import pefile
+    linker = shutil.which('lld-link-18') or str(TOOLS / 'llvm/usr/lib/llvm-18/bin/lld-link')
     build = ROOT / 'build'
     build.mkdir(exist_ok=True)
     inc = build / 'include/Mod'
@@ -73,15 +73,20 @@ def main():
         objects.append(obj)
     out = ROOT / 'dist/FountainControl/dlls'
     out.mkdir(parents=True, exist_ok=True)
-    run(TOOLS / 'llvm/usr/lib/llvm-18/bin/lld-link', '/dll', '/debug',
+    run(linker, '/dll', '/debug',
         '/out:' + str(out / 'main.dll'), '/pdb:' + str(build / 'main.pdb'),
+        '/implib:' + str(build / 'main.lib'),
         '/libpath:' + str(SDK / 'crt/lib/x86_64'),
         '/libpath:' + str(SDK / 'sdk/lib/um/x86_64'),
         '/libpath:' + str(SDK / 'sdk/lib/ucrt/x86_64'),
         *objects, build / 'UE4SS.lib', 'msvcrt.lib', 'vcruntime.lib', 'ucrt.lib',
         'msvcprt.lib', 'kernel32.lib', 'bcrypt.lib')
+    (out / 'main.lib').unlink(missing_ok=True)
     shutil.copy2(ROOT / 'config.ini', out.parent / 'config.ini')
     shutil.copytree(ROOT / 'Scripts', out.parent / 'Scripts', dirs_exist_ok=True)
+    shutil.copytree(ROOT / 'LICENSES', out.parent / 'LICENSES', dirs_exist_ok=True)
+    shutil.copytree(ROOT / 'docs', out.parent / 'docs', dirs_exist_ok=True)
+    shutil.copy2(ROOT / 'README.md', out.parent / 'README.md')
     print(out / 'main.dll')
 
 
