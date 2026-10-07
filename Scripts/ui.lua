@@ -84,16 +84,18 @@ return function(FC)
     local function register_interactions()
         local seen={}
         for _,actor in pairs(FC.actors) do
-            local address=actor:GetAddress()
-            local entry=interactions[address]
-            if not entry or not entry.component:IsValid() or entry.key~=actor:GetSettleKey() then
-                local component=actor:AddComponentByClass(StaticFindObject('/Script/BeltTD.ScriptInteractionComponent'),false,
-                    {Rotation={X=0,Y=0,Z=0,W=1},Translation={X=0,Y=0,Z=0},Scale3D={X=1,Y=1,Z=1}},false)
-                component:RegisterInteractionInfoList({FName('Inspect')})
-                entry={component=component,key=actor:GetSettleKey()};interactions[address]=entry
+            if FC.is_fountain(actor) then
+                local address=actor:GetAddress()
+                local entry=interactions[address]
+                if not entry or not entry.component:IsValid() or entry.key~=actor:GetSettleKey() then
+                    local component=actor:AddComponentByClass(StaticFindObject('/Script/BeltTD.ScriptInteractionComponent'),false,
+                        {Rotation={X=0,Y=0,Z=0,W=1},Translation={X=0,Y=0,Z=0},Scale3D={X=1,Y=1,Z=1}},false)
+                    component:RegisterInteractionInfoList({FName('Inspect')})
+                    entry={component=component,key=actor:GetSettleKey()};interactions[address]=entry
+                end
+                seen[address]=true
+                FCSetInteraction(entry.component:GetAddress(),address)
             end
-            seen[address]=true
-            FCSetInteraction(entry.component:GetAddress(),address)
         end
         for address,entry in pairs(interactions) do
             if not seen[address] then FCSetInteraction(entry.component:GetAddress(),0);interactions[address]=nil end
