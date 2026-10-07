@@ -59,13 +59,12 @@ Once UE4SS is installed:
 2. Copy its **FountainControl** folder into `ue4ss/Mods/`.
    The resulting folder should contain `dlls/main.dll`, `Scripts/` and
    `config.ini` and `enabled.txt`, directly inside `ue4ss/Mods/FountainControl/`.
-   The included `enabled.txt` enables the mod; no `mods.txt` edit is needed.
 3. Launch the game, aim at an upright fountain and press **E**.
 
 ## Configuration
 
 The two distance limits are set separately for each fountain in its interface.
-To keep the game's central exclusion, open
+If you want to disable the central exclusion fix, open
 `ue4ss/Mods/FountainControl/config.ini` and change this setting:
 
 ```ini
@@ -94,14 +93,14 @@ disabled use the defaults.
 Blueprint settings are stored **inside the PNG**. Share the game's exported
 PNG directly; image editors can remove its embedded data. Older blueprints
 without FountainControl settings use the defaults. The PNG was tested with
-the mod disabled, and the Workshop upload path was checked; an online
-Workshop upload/download round trip has not yet been tested.
+the mod disabled, and the Workshop upload path was checked by inspection; an
+online Workshop upload/download round trip has not been tested.
 
 ## Compatibility and troubleshooting
 
 Version **0.1.5** was tested with **Alchemy Factory 1.0.4963 / Steam build
 25321648**, Unreal Engine 5.7.4 and **UE4SS v3.0.1-1161-g6eb3d9bc**, including
-Proton Experimental. It is an experimental singleplayer mod.
+Proton Experimental.
 
 If the View prompt or controls do not appear, check the folder layout,
 `enabled.txt` in the FountainControl folder, and the installed UE4SS version.
