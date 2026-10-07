@@ -54,10 +54,17 @@ succeeds, after the `.sav` writer closes. It computes SHA256, writes schema 1
 JSON to a temporary file and replaces the companion atomically. Native
 serialization and SaveGame property flags are untouched.
 
-Lua loads settings only when the companion schema, data bounds and fingerprint
-match. Reload notifications supply a generation counter so a reused GameState
-address still triggers restoration. Limits are in cm; Default horizontal
-range is represented by JSON null (runtime -1).
+SettleKeys persist across save/load and game sessions for surviving buildings
+within a world. Lua validates the companion schema and each record's data
+bounds. A mismatched or unavailable save fingerprint logs a warning in
+`FountainControl.log` and the UE4SS console, then still loads valid records by
+SettleKey. This recovers settings after sessions with the mod disabled;
+unrecorded keys use defaults. Reload notifications supply a generation counter
+so a reused GameState address still triggers restoration. Limits are in cm;
+Default horizontal range is represented by JSON null (runtime -1).
+
+This recovery applies only to save companions. Executable fingerprint gating
+and embedded blueprint metadata fingerprint validation remain strict.
 
 Cloning captures the source limits and blueprint class and transfers them only
 to a confirmed new actor of the same class. Cut/move can delete the source

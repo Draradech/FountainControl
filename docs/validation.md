@@ -1,8 +1,9 @@
-# Validation through 0.1.3
+# Validation through 0.1.4
 
 Validated on 2026-10-07 with Steam build 25321648, Alchemy Factory 1.0.4963,
 UE 5.7.4, UE4SS v3.0.1-946-g265115c0 and Proton Experimental. Integration
-work used disposable `FountainControl_Dev` and `FountainControl_Blueprint_Dev`
+work used disposable `FountainControl_Dev`, `FountainControl_Blueprint_Dev`
+and `FountainControl_Recovery_Dev`
 copies of the world. The original
 world's save files were not edited.
 
@@ -15,6 +16,7 @@ world's save files were not edited.
 | Lua companion handling | Valid, missing, malformed, stale fingerprint, incorrect schema/data, numeric bounds, step size, building IDs and native clone adoption passed host tests. |
 | Native save completion | Matching companions were written after successful saves; Python independently verified their SHA256 against the `.sav`. AutoSave0/1/2 rotation and wrap were exercised. |
 | Restart and reload | Per-fountain limits and the smaller ring survived restart and loading the matching companion. |
+| Stale save recovery in 0.1.4 | A real save with FountainControl disabled changed the checksum. After restarting with the mod enabled, all 29 fountain SettleKeys were unchanged; key 73598 recovered 350 cm drop, 150 cm horizontal and a 150 cm ring. The warning appeared in FountainControl.log. |
 | Ordinary clone | The native clone/build path copied 350 cm drop and 150 cm horizontal limits to a new building ID. |
 | Cut/move | Actual selection, cut and placement through the game UI preserved those limits after the source was destroyed and a new building ID created. |
 | Range indicator | Zero, 50 and 250 cm caps produced the corresponding radius; 500 cm and Default restored the original ring when it was already smaller than the cap. |
@@ -64,9 +66,12 @@ raw-material and trash receive hooks still need equivalent in-game scenarios.
 Multiplayer was not validated. Hanging fountains and other launchers are outside the intended
 scope.
 
-Fingerprint rejection after a changed save was tested in the host suite.
-Loading without the mod was tested in game; overwriting that slot without the
-mod and then re-enabling it was not separately exercised.
+Save checksum mismatches now permit recovery in 0.1.4. The host suite checks
+repeated changed checksums and an unavailable checksum, warning logging,
+unchanged validation of malformed records and defaults for unrecorded keys.
+Saving a disposable slot with FountainControl disabled and then restarting
+with it enabled was exercised in game. This does not establish SettleKey
+stability across future game updates that migrate building identity.
 
 This is an experimental, executable-pinned build rather than a claim of broad
 compatibility across game updates or long play sessions. The earlier UE4SS

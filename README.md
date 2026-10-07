@@ -61,9 +61,6 @@ Once UE4SS is installed:
 3. Add `FountainControl : 1` to `ue4ss/Mods/mods.txt`.
 4. Launch the game, aim at an upright fountain and press **E**.
 
-Keep the DLL and Scripts folder together. If you changed the game's Inspect
-binding, use that key instead of E. **Escape** closes the controls.
-
 ## Configuration
 
 The two distance limits are set separately for each fountain in its interface.
@@ -86,9 +83,12 @@ They live in a small file beside each save, for example
 or backing up saves** if you want to retain your limits.
 
 The game's save format is unchanged, and saves still load without the mod.
-A missing or invalid settings file makes fountains use the defaults. Saving
-that slot without FountainControl can also make its previous settings file
-out of date, so re-enabling the mod may restore defaults for that slot.
+A missing or invalid settings file makes fountains use the defaults. If you
+save that slot while FountainControl is disabled, re-enabling it restores valid
+settings for fountains that still have the same building ID (SettleKey), even
+across game sessions. A changed save checksum produces a warning in
+`FountainControl.log`. Fountains built or given a new ID while the mod was
+disabled use the defaults.
 
 Blueprint settings are stored **inside the PNG**. Share the game's exported
 PNG directly; image editors can remove its embedded data. Older blueprints
@@ -98,7 +98,7 @@ Workshop upload/download round trip has not yet been tested.
 
 ## Compatibility and troubleshooting
 
-Version **0.1.3** was tested with **Alchemy Factory 1.0.4963 / Steam build
+Version **0.1.4** was tested with **Alchemy Factory 1.0.4963 / Steam build
 25321648**, Unreal Engine 5.7.4 and **UE4SS v3.0.1-946-g265115c0**, including
 Proton Experimental. It is an experimental singleplayer mod.
 
@@ -120,6 +120,6 @@ Codex investigated the game's native fountain behavior, wrote the mod code,
 build tools and tests, ran automated and controlled in-game checks, and
 prepared the documentation and range graphs.
 
-**draradech** defined the features and compatibility requirements, supplied
-object dumps and in-game measurements, made the design decisions, and tested
-and reviewed the interface and behavior, guiding corrections and further work.
+**draradech** defined the features and compatibility requirements, made the
+design decisions, supplied in-game measurements, and tested and reviewed the
+interface and behavior, guiding corrections and further work.
