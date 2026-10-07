@@ -1,4 +1,4 @@
-# Validation through 0.1.6
+# Validation through 0.1.7
 
 Checks through 0.1.4 were validated on 2026-10-07 with Steam build 25321648, Alchemy Factory 1.0.4963,
 UE 5.7.4, UE4SS v3.0.1-946-g265115c0 and Proton Experimental. Integration
@@ -203,3 +203,37 @@ Temporary development commands were enabled for inspection and then disabled.
 
 The save companion and PNG metadata schemas remain at version 1. Existing
 0.5 m settings remain valid; trajectory and range geometry are unchanged.
+
+
+## Cloud-synced save companions in 0.1.7
+
+Before this change, draradech reported that the native Windows smoke test and
+the final 0.1.6 integration pass succeeded. They also confirmed that Steam
+syncs `.sav` files in a SaveGames subfolder and that the game ignores them.
+These are user-reported checks; the earlier automated results remain above.
+
+The new location was validated on 2026-10-07 under Proton with the same stock
+UE4SS 1161 installation, using a fresh `FountainControl_Cloud_Dev` world:
+
+- Loaded a native save without a settings directory and verified defaults.
+  Set fountain 73598 to 340/160 cm and saved through the normal game interface.
+  The mod created `FountainControl/SaveGame0.sav` in the world folder.
+- Independently parsed its schema 1 JSON and verified that its fingerprint
+  matched the native `SaveGame0.sav` in the parent folder. No legacy-path
+  companion was created, and the atomic-write temporary file was gone.
+- Changed the limits to 330/170 cm and saved the same slot again. The existing
+  companion was replaced with the updated values and matching fingerprint.
+- After exiting, Steam's cloud log explicitly reported successful uploads of
+  both the native save and `FountainControl/SaveGame0.sav`, followed by an
+  overall successful upload result.
+- Closed and restarted the game, then loaded the same slot. The nested
+  companion restored 330/170 cm, and the measured ring radius was 170.000 cm.
+- Host Lua tests pass for the new path, native-save fingerprinting, Windows
+  and mixed separators, record validation and recovery. Existing setter and
+  ghost-preview tests also pass.
+- All files present in the user's save directory before this check retained
+  their original contents. Temporary development commands were disabled again.
+
+This check verifies the new writer, replacement, reader and Steam upload.
+A second-machine download of this newly generated companion was not repeated;
+draradech's subfolder synchronization check is recorded above.
