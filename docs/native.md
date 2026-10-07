@@ -107,3 +107,31 @@ to confirmed upright MovePattern 2 actors. Empty import sessions prevent
 cross-world source-ID collisions from inheriting local settings. Saved
 blueprint edits retain their own metadata instead of using the current world
 selection. The native save format and property flags remain unchanged.
+
+## Ghost range preview in 0.1.3
+
+The preview bridge reads the controller's serial-checked CurrentState weak
+reference at `+0xaf0`. It accepts only `BP_SpatialCloneState_C` in placement
+mode (`+0x148`), and reads its current building records at `+0x2d8`.
+Each record's native entity reference at `+0x1d8` resolves its ghost actor
+through `0x144a5b040`, which checks the weak object's serial and validity.
+The CurrentState weak resolver is `0x141540ca0`. These reads remain protected
+by the existing executable fingerprint; no additional hooks were added.
+
+Only unsettled upright fountain actors are returned. The shared source lookup
+used by actual construction supplies remembered copy/move settings or imported
+blueprint settings. A metadata-free import supplies Default, even when its
+source IDs collide with current-world fountains. Ghosts are not matched by
+position or their shared zero SettleKey, and are never registered as facilities
+or added to save companions.
+
+A 100 ms game-thread loop displays each ghost's existing range indicator and
+applies the same horizontal scale as a settled fountain. It maintains a separate
+baseline cache, preserving Z scale, and restores and hides departing ghost
+indicators before reuse. Rotation and translation continue through the native
+placement system. This previews the existing horizontal ring, not a volume
+representing the drop limit or the trajectory envelope at every height.
+
+Menus and loading can have no active controller state. The reflected
+GetCurrentStateName method assumes one exists and must not be called by this
+poller; the checked weak resolver returns an empty preview instead.

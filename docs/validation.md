@@ -1,4 +1,4 @@
-# Validation through 0.1.2
+# Validation through 0.1.3
 
 Validated on 2026-10-07 with Steam build 25321648, Alchemy Factory 1.0.4963,
 UE 5.7.4, UE4SS v3.0.1-946-g265115c0 and Proton Experimental. Integration
@@ -110,3 +110,28 @@ not change.
 `tools/game_tests/blueprint.lua` exercises actual cost-free construction only
 in disposable development worlds. Its input PNG contains the two expected
 settings. The per-save persistence and UI code are unchanged by this release.
+
+## Ghost previews in 0.1.3
+
+- Native menu state safely returned an empty preview before world loading.
+- Ordinary bulk copy and the actual middle-mouse quick-copy action previewed
+  a fountain's 150 cm horizontal cap. Scale and visibility remained correct
+  over 100 samples at 10 ms intervals across native preview updates.
+- Actual `T` cut/move removed the source actor while its ghost retained the
+  150 cm cap through the remembered source settings.
+- Importing the two-fountain PNG displayed separate 150 and 300 cm rings.
+  Native rotation retained both radii and visibility. A further 100 samples
+  at 10 ms intervals found both rings stable across native preview updates.
+- The same native PNG without mod metadata displayed both original rings
+  (about 480.204 cm), despite conflicting destination source IDs.
+- A zero cap collapsed the ghost ring. 500 cm and Default restored its native
+  radius. Cancellation cleared preview context and the separate baseline cache.
+- No zero-ID fountain entered the Lua settings or native facility/save maps.
+- Host Lua tests cover independent zero-ID ghosts, repeated updates without
+  cumulative shrinkage, zero/Default transitions, cancellation and reuse.
+
+`tools/game_tests/preview.lua` reads active ghosts in disposable development
+worlds and checks their actual mesh radii, visibility and absent save settings.
+An initial prototype called the game's state-name getter before a state
+existed and crashed at the menu. The final bridge uses serial-checked weak
+resolution and was restarted and validated at the menu and in gameplay.

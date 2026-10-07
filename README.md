@@ -1,6 +1,6 @@
 # FountainControl
 
-A UE4SS mod for Alchemy Factory's upright Arcane Fountain. Version 0.1.2 is
+A UE4SS mod for Alchemy Factory's upright Arcane Fountain. Version 0.1.3 is
 an experimental build, tested in a separate copy of a singleplayer world.
 This directory is an independent Git repository.
 
@@ -11,6 +11,8 @@ This directory is an independent Git repository.
   steps, followed by a final **Default** slider position that applies no
   extra horizontal cap. Default does not limit lower targets to the visible
   ring's radius.
+- Placement ghosts preview each fountain's horizontal range during quick copy,
+  bulk copy, cut/move and blueprint placement, including rotated groups.
 - Shrink the existing range indicator when the chosen horizontal limit is
   smaller than its original rendered radius.
 - Global startup INI option `RemoveCenterExclusion`, enabled by default.

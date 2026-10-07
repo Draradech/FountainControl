@@ -44,6 +44,7 @@ clang++ -std=c++20 -O2 -fsanitize=address,undefined -I src tests/blueprint.cpp -
 ```
 
 The blueprint test checks portable metadata and PNG parsing with host sanitizers.
+The Lua suite also checks ghost indicator lifecycle and isolation from saved settings.
 The state test requires the host Lua 5.4 shared library (`liblua5.4-0` on
 Ubuntu). The trajectory test executes the installed, supported game's native
 reach predicate in Unicorn and compares it with the C++ solver. It reads and

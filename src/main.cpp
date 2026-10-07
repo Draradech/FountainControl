@@ -15,7 +15,7 @@ void write_log(const char* message) {
 }
 
 int native_info(const RC::LuaMadeSimple::Lua& lua) {
-    lua.set_string("FountainControl native bridge 0.1.2");
+    lua.set_string("FountainControl native bridge 0.1.3");
     lua.set_bool(remove_exclusion);
     lua.set_bool(fc::ready());
     return 3;
@@ -135,7 +135,7 @@ class FountainControl final : public RC::CppUserModBase {
 public:
     FountainControl() {
         ModName = L"FountainControl";
-        ModVersion = L"0.1.2";
+        ModVersion = L"0.1.3";
         ModDescription = L"Per-fountain range controls for Alchemy Factory";
         ModAuthors = L"draradech";
         HMODULE module;
