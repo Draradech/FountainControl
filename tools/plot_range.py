@@ -27,12 +27,18 @@ for ax, original, color, title in zip(
         ax.fill_betweenx(y, -outer, -inner, color=color, alpha=.85)
         ax.plot(inner, y, color='#42647d', linewidth=1.2)
         ax.plot(-inner, y, color='#42647d', linewidth=1.2)
+        ax.plot(outer, y, color='#42647d', linewidth=1.2)
+        ax.plot(-outer, y, color='#42647d', linewidth=1.2)
+        ax.hlines(-10, -outer[0], outer[0], color='#42647d', linewidth=1.2)
     else:
-        ax.fill_betweenx(y, -outer, outer, color=color, alpha=.85)
-        ax.hlines(y[-1], -outer[-1], outer[-1], color='#42647d', linewidth=1.2)
-    ax.plot(outer, y, color='#42647d', linewidth=1.2)
-    ax.plot(-outer, y, color='#42647d', linewidth=1.2)
-    ax.hlines(-10, -outer[0], outer[0], color='#42647d', linewidth=1.2)
+        ax.fill_betweenx(y, -outer, outer, color=color, alpha=.85,
+                         edgecolor='none', linewidth=0)
+        # One closed path keeps the cap and curves on the same stroke centre.
+        # A separate hlines collection snaps its horizontal stroke to pixels.
+        outline_x = np.concatenate((-outer, outer[::-1], [-outer[0]]))
+        outline_y = np.concatenate((y, y[::-1], [y[0]]))
+        ax.plot(outline_x, outline_y, color='#42647d', linewidth=1.2,
+                solid_joinstyle='round', snap=False)
     ax.axhline(0, color='#60717c', linestyle='--', linewidth=.8)
     ax.axvline(0, color='#60717c', linestyle='--', linewidth=.8)
     ax.scatter([0], [0], color='#ce533c', s=35, zorder=5)
