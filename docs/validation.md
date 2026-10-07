@@ -1,11 +1,14 @@
-# Validation through 0.1.4
+# Validation through 0.1.5
 
-Validated on 2026-10-07 with Steam build 25321648, Alchemy Factory 1.0.4963,
+Checks through 0.1.4 were validated on 2026-10-07 with Steam build 25321648, Alchemy Factory 1.0.4963,
 UE 5.7.4, UE4SS v3.0.1-946-g265115c0 and Proton Experimental. Integration
 work used disposable `FountainControl_Dev`, `FountainControl_Blueprint_Dev`
 and `FountainControl_Recovery_Dev`
 copies of the world. The original
 world's save files were not edited.
+
+The clean installation and interface check in 0.1.5 used the supplied UE4SS
+1161 archive with its stock settings, as described below.
 
 ## Completed checks
 
@@ -140,3 +143,35 @@ worlds and checks their actual mesh radii, visibility and absent save settings.
 An initial prototype called the game's state-name getter before a state
 existed and crashed at the menu. The final bridge uses serial-checked weak
 resolution and was restarted and validated at the menu and in gameplay.
+
+## Clean installation with UE4SS 1161 in 0.1.5
+
+Followed the README's installation steps on 2026-10-07, starting with a Win64
+directory containing no UE4SS installation:
+
+- Extracted the supplied standard `UE4SS_v3.0.1-1161-g6eb3d9bc.zip` beside the
+  game executable, then extracted the FountainControl ZIP and copied its
+  folder into `ue4ss/Mods/`.
+- Left `UE4SS-settings.ini`, `mods.txt` and `mods.json` byte-for-byte identical
+  to the archive originals. No custom signatures were installed; the engine
+  version overrides stayed empty. The existing Proton `dwmapi` DLL override
+  was used.
+- UE4SS logged engine version 5.7 and Shipping configuration autodetection.
+  Both the DLL and Lua mod started through the included `enabled.txt`.
+  FountainControl verified the game executable and enabled its native hooks.
+- Loaded `FountainControl_Recovery_Dev/SaveGame0` through the normal game menus.
+  A fountain advertised View, and pressing E opened the styled controls.
+  Mouse input set 3.5 m drop and 1.5 m horizontal; the ring shrank, and both
+  values remained after Escape and reopening with E. No development commands
+  or helper mods were used.
+- Closed the game and verified all 13 original-world save hashes were unchanged.
+
+The supplied archive's SHA256 is
+`938dc9901e6452cad3120280681c93a00ae12df2b259668815a150e221a35563`.
+Its DLL startup banner reports `v3.0.1 Beta #0 - Git SHA #5418fa4e`; the
+installed DLL was verified byte-for-byte against the archive. The archive
+filename is retained above to identify the tested download precisely.
+
+This check covers clean installation and normal fountain interaction on the
+new loader. The full geometry, delivery and blueprint matrices above were
+performed on the earlier UE4SS build.
