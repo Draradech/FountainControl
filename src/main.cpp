@@ -7,6 +7,7 @@
 namespace {
 std::filesystem::path mod_path;
 bool remove_exclusion = true;
+bool development = false;
 
 void log(const char* message) {
     std::ofstream(mod_path / "FountainControl.log", std::ios::app) << message << '\n';
@@ -16,6 +17,26 @@ int native_info(const RC::LuaMadeSimple::Lua& lua) {
     lua.set_string("FountainControl native bridge 0.1.0");
     lua.set_bool(remove_exclusion);
     return 2;
+}
+
+int native_root(const RC::LuaMadeSimple::Lua& lua) {
+    auto path = mod_path.u8string();
+    lua.set_string(std::string_view(reinterpret_cast<const char*>(path.data()), path.size()));
+    lua.set_bool(development);
+    return 2;
+}
+
+int native_read(const RC::LuaMadeSimple::Lua& lua) {
+    auto address = static_cast<uintptr_t>(lua.get_integer(1));
+    auto length = static_cast<size_t>(lua.get_integer(2));
+    MEMORY_BASIC_INFORMATION mbi{};
+    if (!development || length > 16384 || !VirtualQuery(reinterpret_cast<void*>(address), &mbi, sizeof mbi)
+        || mbi.State != MEM_COMMIT || (mbi.Protect & (PAGE_NOACCESS | PAGE_GUARD))
+        || address + length > reinterpret_cast<uintptr_t>(mbi.BaseAddress) + mbi.RegionSize) {
+        lua.set_nil(); return 1;
+    }
+    lua.set_string(reinterpret_cast<const uint8_t*>(address), length);
+    return 1;
 }
 
 class FountainControl final : public RC::CppUserModBase {
@@ -35,6 +56,7 @@ public:
         GetPrivateProfileStringW(L"UprightFountains", L"RemoveCenterExclusion", L"true", value, 32,
                                  (mod_path / "config.ini").c_str());
         remove_exclusion = _wcsicmp(value, L"false") != 0 && wcscmp(value, L"0") != 0;
+        development = GetPrivateProfileIntW(L"Development", L"EnableCommands", 0, (mod_path / "config.ini").c_str()) != 0;
         log("DLL constructed; UE4SS ABI initialized");
     }
     void on_unreal_init() override { log("Unreal initialized"); }
@@ -44,6 +66,8 @@ public:
         if (name != L"FountainControl") return;
         auto register_bridge = [](RC::LuaMadeSimple::Lua& state) {
             state.register_function("FCNativeInfo", native_info);
+            state.register_function("FCNativeRoot", native_root);
+            state.register_function("FCNativeRead", native_read);
         };
         register_bridge(lua);
         if (&main_lua != &lua) register_bridge(main_lua);

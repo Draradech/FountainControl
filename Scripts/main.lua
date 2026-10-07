@@ -4,3 +4,7 @@ if not ok then
     return
 end
 print(string.format('[FountainControl] %s; RemoveCenterExclusion=%s\n', name, tostring(remove)))
+local root, development = FCNativeRoot()
+if development then
+    dofile(root .. '/Scripts/dev.lua')(root)
+end
