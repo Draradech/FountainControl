@@ -7,9 +7,17 @@ return function(FC)
             return StaticConstructObject(StaticFindObject('/Script/UMG.'..class),tree,FName(name))
         end
         local box=widget('VerticalBox','FountainControlControls')
-        local slot=tree.RootWidget:AddChildToVerticalBox(box)
-        slot:SetPadding({Left=8,Top=12,Right=8,Bottom=8})
-        local controls={panel=panel,box=box}
+        local background=widget('Border','FountainControlBackground')
+        background:SetBrushColor({R=.82,G=.72,B=.51,A=.97})
+        background:SetPadding({Left=14,Top=10,Right=14,Bottom=10})
+        background:SetContent(box)
+        local size=widget('SizeBox','FountainControlSize')
+        size:SetWidthOverride(450)
+        size:SetContent(background)
+        local slot=tree.RootWidget:AddChildToVerticalBox(size)
+        slot:SetHorizontalAlignment(2)
+        slot:SetPadding({Left=0,Top=12,Right=0,Bottom=8})
+        local controls={panel=panel,box=size}
         local function row(name,max)
             local label=widget('TextBlock','FountainControl'..name..'Label')
             local font=panel.Txt_Title.Font; font.Size=18
