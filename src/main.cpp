@@ -24,15 +24,46 @@ int native_info(const RC::LuaMadeSimple::Lua& lua) {
 int native_set(const RC::LuaMadeSimple::Lua& lua) {
     auto pointer = reinterpret_cast<void*>(lua.get_integer());
     double drop = lua.get_number(), horizontal = lua.get_number();
-    fc::set_facility(pointer, {std::clamp(drop,0.,1000.),horizontal > 500 ? -1 : horizontal});
+    auto key=static_cast<uint32_t>(lua.get_integer());
+    auto actor=reinterpret_cast<void*>(lua.get_integer());
+    fc::set_facility(pointer, {std::clamp(drop,0.,1000.),horizontal > 500 ? -1 : horizontal},key,actor);
     return 0;
 }
 int native_remove(const RC::LuaMadeSimple::Lua& lua) { fc::remove_facility(reinterpret_cast<void*>(lua.get_integer())); return 0; }
 int native_reset(const RC::LuaMadeSimple::Lua&) { fc::reset(); return 0; }
+int native_generation(const RC::LuaMadeSimple::Lua& lua) { lua.set_integer(fc::load_generation()); return 1; }
+int native_get(const RC::LuaMadeSimple::Lua& lua) {
+    auto value=fc::limits_for_key(static_cast<uint32_t>(lua.get_integer()));
+    lua.set_bool(value.has_value()); lua.set_number(value ? value->drop : 1000); lua.set_number(value ? value->horizontal : -1); return 3;
+}
+int native_probe(const RC::LuaMadeSimple::Lua& lua) {
+    auto f=reinterpret_cast<void*>(lua.get_integer());
+    fc::Vec delta{lua.get_number(),lua.get_number(),lua.get_number()};
+    if (!development || !fc::ready()) return 0;
+    auto p=fc::probe(f,delta);
+    lua.set_bool(p.vanilla); lua.set_bool(p.modified);
+    lua.set_number(p.origin.x); lua.set_number(p.origin.y); lua.set_number(p.origin.z);
+    lua.set_number(p.flight ? p.flight->time : -1); lua.set_number(p.flight ? p.flight->vertical : -1);
+    lua.set_bool(p.flight && p.flight->repaired); return 8;
+}
+int native_catch(const RC::LuaMadeSimple::Lua& lua) {
+    auto receiver=reinterpret_cast<void*>(lua.get_integer());
+    if (!development || !fc::ready()) return 0;
+    auto p=fc::catch_point(receiver); lua.set_number(p.x); lua.set_number(p.y); lua.set_number(p.z); return 3;
+}
+int native_stats(const RC::LuaMadeSimple::Lua& lua) {
+    if (!development) return 0;
+    for (auto n:fc::flight_stats()) lua.set_integer(n); return 3;
+}
 int native_hash(const RC::LuaMadeSimple::Lua& lua) {
     auto input = lua.get_string();
     auto result = fc::fingerprint(std::filesystem::path(std::u8string_view(reinterpret_cast<const char8_t*>(input.data()),input.size())));
     lua.set_string(result); return 1;
+}
+int native_save_root(const RC::LuaMadeSimple::Lua& lua) {
+    auto input=lua.get_string();
+    fc::set_save_root(std::filesystem::path(std::u8string_view(reinterpret_cast<const char8_t*>(input.data()),input.size())));
+    return 0;
 }
 
 int native_root(const RC::LuaMadeSimple::Lua& lua) {
@@ -87,7 +118,13 @@ public:
             state.register_function("FCSetFacility", native_set);
             state.register_function("FCRemoveFacility", native_remove);
             state.register_function("FCResetFacilities", native_reset);
+            state.register_function("FCLoadGeneration", native_generation);
+            state.register_function("FCGetNativeLimits", native_get);
+            state.register_function("FCProbeReach", native_probe);
+            state.register_function("FCProbeCatch", native_catch);
+            state.register_function("FCFlightStats", native_stats);
             state.register_function("FCFingerprint", native_hash);
+            state.register_function("FCSetSaveRoot", native_save_root);
         };
         register_bridge(lua);
         if (&main_lua != &lua) register_bridge(main_lua);

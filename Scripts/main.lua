@@ -5,7 +5,10 @@ if not ok then
 end
 print(string.format('[FountainControl] %s; RemoveCenterExclusion=%s\n', name, tostring(remove)))
 local root, development = FCNativeRoot()
-if ready then dofile(root .. '/Scripts/state.lua')(root) end
+if ready then
+    local state=dofile(root .. '/Scripts/state.lua')(root)
+    dofile(root .. '/Scripts/ui.lua')(state)
+end
 if development then
     dofile(root .. '/Scripts/dev.lua')(root)
 end

@@ -2,8 +2,10 @@
 #include <bcrypt.h>
 #include <MinHook.h>
 #include <array>
+#include <atomic>
 #include <cstring>
 #include <fstream>
+#include <sstream>
 #include <mutex>
 #include <unordered_map>
 #include <vector>
@@ -15,6 +17,15 @@ uintptr_t image;
 bool active = false, remove_centre = true;
 std::mutex mutex;
 std::unordered_map<void*,Limits> facilities;
+std::unordered_map<void*,uint32_t> building_keys;
+std::unordered_map<void*,void*> actor_classes;
+std::array<std::atomic<uint64_t>,3> repaired_counts{};
+struct CloneSource { Limits limits; void* actor_class; };
+thread_local std::optional<CloneSource> cloning;
+std::filesystem::path save_root;
+struct Snapshot { std::filesystem::path save; std::string settings; };
+std::unordered_map<void*,Snapshot> pending_saves;
+std::atomic<uint64_t> generation{};
 thread_local void* emitting = nullptr;
 // This marker exists only in queued throw arguments. It never reaches saved
 // objects: the visual hook converts it to the game's ordinary MovePattern 2.
@@ -35,6 +46,97 @@ Launch original_launch;
 std::array<Receive,5> original_receive{};
 Visual original_visual;
 Worker original_hopper;
+using SaveBegin = void(*)(void*,void*,void*,int);
+SaveBegin original_save_begin;
+Worker original_save_complete;
+using Reload = void(*)(void*,void*,void*,bool);
+Reload original_reload;
+using Clone = bool(*)(void*,const Vec*,uint8_t,void*,bool);
+Clone original_clone;
+using Build = void*(*)(void*,void*,void*,void*,bool,uint64_t,const Vec*,bool,uint8_t,bool,void*);
+Build original_build;
+bool clone(void* controller,const Vec* position,uint8_t rotation,void* command,bool preview) {
+    auto previous=cloning;
+    cloning.reset();
+    if (!preview) {
+        uint32_t source=field<uint32_t>(command,0x1ac);
+        std::scoped_lock lock(mutex);
+        for (auto [facility,key]:building_keys) if (key==source) {
+            cloning=CloneSource{facilities.at(facility),actor_classes.at(facility)}; break;
+        }
+    }
+    bool result=original_clone(controller,position,rotation,command,preview);
+    cloning=previous;
+    return result;
+}
+void* build(void* subsystem,void* out,void* controller,void* variant,bool a,uint64_t area,
+            const Vec* position,bool b,uint8_t active_index,bool c,void* extension) {
+    void* result=original_build(subsystem,out,controller,variant,a,area,position,b,active_index,c,extension);
+    if (cloning && field<bool>(out,0x14)) {
+        void* actor=field<void*>(out,0x20);
+        if (actor && field<void*>(actor,0x10)==cloning->actor_class) {
+            set_facility(field<void*>(actor,0x2f8),cloning->limits,field<uint32_t>(actor,0x2c4),actor);
+            log("Copied cloned fountain settings");
+        }
+    }
+    return result;
+}
+void reload(void* subsystem,void* world,void* slot,bool sandbox) {
+    original_reload(subsystem,world,slot,sandbox);
+    reset();
+    ++generation;
+}
+std::wstring unreal_string(void* p) {
+    int count=field<int>(p,8);
+    if (count<=0 || count>32768) return {};
+    return {field<wchar_t*>(p,0),static_cast<size_t>(count-1)};
+}
+void save_begin(void* action,void* info,void* slot,int user) {
+    {
+        std::scoped_lock lock(mutex);
+        if (!save_root.empty()) {
+            std::ostringstream json;
+            json << '{'; bool first=true;
+            for (auto [facility,limits]:facilities) {
+                auto key=building_keys.find(facility);
+                if (key==building_keys.end()) continue;
+                if (!first) json << ','; first=false;
+                json << '"' << key->second << "\":{\"drop\":" << limits.drop << ",\"horizontal\":";
+                if (limits.horizontal<0) json << "null"; else json << limits.horizontal;
+                json << '}';
+            }
+            json << '}';
+            auto path=save_root / unreal_string(slot);
+            path += L".sav";
+            pending_saves[action]={path,json.str()};
+        }
+    }
+    original_save_begin(action,info,slot,user);
+}
+void save_complete(void* context) {
+    std::optional<Snapshot> snapshot;
+    {
+        std::scoped_lock lock(mutex);
+        auto found=pending_saves.find(field<void*>(context,0));
+        if (found!=pending_saves.end()) { snapshot=std::move(found->second); pending_saves.erase(found); }
+    }
+    // This callback receives the actual SaveGameToSlot result, after the file
+    // writer has closed the save. A failed save never gets a new companion.
+    if (snapshot && field<bool>(context,0x1c)) {
+        auto hash=fingerprint(snapshot->save);
+        if (!hash.empty()) {
+            auto companion=snapshot->save; companion.replace_extension(L".fountains.json");
+            auto temporary=companion; temporary+=L".tmp";
+            std::ofstream file(temporary,std::ios::binary|std::ios::trunc);
+            file << "{\"schema\":1,\"fingerprint\":\"" << hash << "\",\"fountains\":" << snapshot->settings << "}\n";
+            file.close();
+            if (file && MoveFileExW(temporary.c_str(),companion.c_str(),MOVEFILE_REPLACE_EXISTING|MOVEFILE_WRITE_THROUGH))
+                log("Save companion committed");
+            else log("Failed to write save companion; native save remains usable");
+        } else log("Completed save could not be fingerprinted; companion skipped");
+    }
+    original_save_complete(context);
+}
 
 std::optional<Limits> limits_for(void* f) {
     std::scoped_lock lock(mutex);
@@ -80,7 +182,7 @@ template<size_t I> void receive(void* receiver,int index,void* game,void* entity
         auto vt = field<void**>(receiver,0);
         reinterpret_cast<Catch>(vt[0x568/8])(receiver,&target);
         auto flight = solve({target.x-from->x,target.y-from->y,target.z-from->z},*limits,true);
-        if (flight && flight->repaired) { speed=flight->time; pattern=custom_flight; }
+        if (flight && flight->repaired) { speed=flight->time; pattern=custom_flight; ++repaired_counts[0]; }
     }
     original_receive[I](receiver,index,game,entity,from,speed,mesh,pattern);
 }
@@ -99,6 +201,7 @@ void visual(void* game,void* index,void* from,void* to,double speed,void* callba
     field<int>(entity,0x1c)=2;
     field<double>(entity,0x20)=dz/speed+490*speed;
     field<double>(entity,0x28)=speed;
+    ++repaired_counts[1];
 }
 void hopper(void* context) {
     bool custom = field<int>(context,0xa8) == custom_flight;
@@ -109,6 +212,7 @@ void hopper(void* context) {
     if (custom && field<int>(component,0x270) == before+1) {
         void* entry = static_cast<char*>(field<void*>(component,0x268))+before*0x28;
         field<double>(entry,0x18)=duration;
+        ++repaired_counts[2];
     }
 }
 struct Hook { uintptr_t va; void* detour; void** original; };
@@ -154,6 +258,11 @@ void initialize(bool remove) {
         {0x144a145f0,reinterpret_cast<void*>(&receive<2>),reinterpret_cast<void**>(&original_receive[2])},
         {0x144a14790,reinterpret_cast<void*>(&receive<3>),reinterpret_cast<void**>(&original_receive[3])},
         {0x144a149c0,reinterpret_cast<void*>(&receive<4>),reinterpret_cast<void**>(&original_receive[4])},
+        {0x144acd490,reinterpret_cast<void*>(&save_begin),reinterpret_cast<void**>(&original_save_begin)},
+        {0x144aaae90,reinterpret_cast<void*>(&save_complete),reinterpret_cast<void**>(&original_save_complete)},
+        {0x144acb850,reinterpret_cast<void*>(&reload),reinterpret_cast<void**>(&original_reload)},
+        {0x144ac84c0,reinterpret_cast<void*>(&clone),reinterpret_cast<void**>(&original_clone)},
+        {0x144ad34d0,reinterpret_cast<void*>(&build),reinterpret_cast<void**>(&original_build)},
     };
     if (MH_Initialize()!=MH_OK) { log("MinHook initialization failed"); return; }
     for (auto h:hooks) {
@@ -172,7 +281,8 @@ void initialize(bool remove) {
     log("Verified Alchemy Factory 1.0.4963; all fountain hooks enabled");
 }
 bool ready() { return active; }
-void set_facility(void* f,Limits limits) {
+uint64_t load_generation() { return generation.load(); }
+void set_facility(void* f,Limits limits,uint32_t key,void* actor) {
     if (!active) return;
     bool changed;
     {
@@ -180,11 +290,35 @@ void set_facility(void* f,Limits limits) {
         auto old=facilities.find(f);
         changed=old==facilities.end() || old->second.drop!=limits.drop || old->second.horizontal!=limits.horizontal;
         facilities[f]=limits;
+        building_keys[f]=key;
+        actor_classes[f]=field<void*>(actor,0x10);
     }
     // The normal activation path rebuilds the list on its next update.
     if (changed) field<bool>(f,0x298)=false;
 }
-void remove_facility(void* f) { std::scoped_lock lock(mutex); facilities.erase(f); }
-void reset() { std::scoped_lock lock(mutex); facilities.clear(); }
+std::optional<Limits> limits_for_key(uint32_t key) {
+    std::scoped_lock lock(mutex);
+    for (auto [f,id]:building_keys) if (id==key) return facilities.at(f);
+    return {};
+}
+Probe probe(void* f,Vec relative) {
+    Probe result{};
+    address<Emit>(0x144a1c6c0)(f,&result.origin);
+    Vec target{result.origin.x+relative.x,result.origin.y+relative.y,result.origin.z+relative.z};
+    result.vanilla=original_reach(f,&target);
+    result.modified=reach(f,&target);
+    auto limits=limits_for(f);
+    if (limits) result.flight=solve(relative,*limits,remove_centre);
+    return result;
+}
+Vec catch_point(void* receiver) {
+    Vec result{}; auto vt=field<void**>(receiver,0);
+    reinterpret_cast<Catch>(vt[0x568/8])(receiver,&result);
+    return result;
+}
+std::array<uint64_t,3> flight_stats() { return {repaired_counts[0].load(),repaired_counts[1].load(),repaired_counts[2].load()}; }
+void remove_facility(void* f) { std::scoped_lock lock(mutex); facilities.erase(f); building_keys.erase(f); actor_classes.erase(f); }
+void reset() { std::scoped_lock lock(mutex); facilities.clear(); building_keys.clear(); actor_classes.clear(); }
+void set_save_root(std::filesystem::path root) { std::scoped_lock lock(mutex); save_root=std::move(root); }
 void shutdown() { if (active) { /* DLL mods are unloaded only after process shutdown. */ } }
 }

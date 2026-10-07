@@ -19,12 +19,5 @@ return function(root)
             if not ok then log(error) end
         end, EGameThreadMethod.EngineTick)
     end)
-    local function hook(path, callback)
-        local ok, error = pcall(RegisterHook, path, callback)
-        if not ok then log('Cannot hook ' .. path .. ': ' .. tostring(error)) end
-    end
-    hook('/Script/BeltTD.BeltTDActivatableWidget:SetContextActor', function(context, actor)
-        log('UI context: ' .. context:get():GetFullName() .. ' actor=' .. actor:get():GetFullName())
-    end)
     log('Local development commands enabled')
 end
