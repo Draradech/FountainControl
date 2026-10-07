@@ -44,7 +44,7 @@ struct BlueprintSession { std::vector<BlueprintSetting> settings; };
 // from an unrelated building with the same original ID in the destination world.
 std::unordered_map<void*,BlueprintSession> blueprint_sessions;
 thread_local BlueprintSession* entering_blueprint{};
-thread_local blueprint::Companion* packing_blueprint{};
+thread_local blueprint::Metadata* packing_blueprint{};
 std::filesystem::path save_root;
 struct Snapshot { std::filesystem::path save; std::string settings; };
 std::unordered_map<void*,Snapshot> pending_saves;
@@ -155,8 +155,20 @@ using PackBlueprint = void*(*)(void*,void*,void*,void*,void*,int,uint64_t,void*,
 PackBlueprint original_pack_blueprint;
 using SaveArray = bool(*)(void*,const wchar_t*,void*,uint32_t);
 SaveArray original_save_array;
-std::filesystem::path blueprint_companion(std::filesystem::path png) {
-    png+=L".fountains"; return png;
+std::string memory_fingerprint(std::span<const uint8_t> bytes) {
+    BCRYPT_ALG_HANDLE algorithm{};
+    BCRYPT_HASH_HANDLE hash{};
+    if (bytes.size()>ULONG_MAX || BCryptOpenAlgorithmProvider(&algorithm,BCRYPT_SHA256_ALGORITHM,nullptr,0)<0) return {};
+    std::array<unsigned char,32> digest{};
+    bool ok=BCryptCreateHash(algorithm,&hash,nullptr,0,nullptr,0,0)>=0
+        && BCryptHashData(hash,const_cast<PUCHAR>(bytes.data()),static_cast<ULONG>(bytes.size()),0)>=0
+        && BCryptFinishHash(hash,digest.data(),digest.size(),0)>=0;
+    if (hash) BCryptDestroyHash(hash);
+    BCryptCloseAlgorithmProvider(algorithm,0);
+    if (!ok) return {};
+    std::string result;
+    for (auto b:digest) { result+="0123456789abcdef"[b>>4]; result+="0123456789abcdef"[b&15]; }
+    return result;
 }
 void* read_blueprint(void* out,void* directory,void* filename) {
     auto path=std::filesystem::path(unreal_string(directory))/unreal_string(filename);
@@ -165,21 +177,26 @@ void* read_blueprint(void* out,void* directory,void* filename) {
     void* state=static_cast<char*>(out)+0x50;
     int count=field<int>(state,8);
     // Editing a saved blueprint serializes its loaded records, not the current
-    // world selection. Preserve that file's companion before its PNG changes.
-    if (packing_blueprint) *packing_blueprint=blueprint::Companion{count,{}};
-    auto companion=blueprint_companion(path);
-    std::ifstream file(companion,std::ios::binary);
+    // world selection. Preserve its embedded settings before its PNG changes.
+    if (packing_blueprint) *packing_blueprint=blueprint::Metadata{count,{}};
+    std::ifstream file(path,std::ios::binary|std::ios::ate);
     if (!file) return result;
-    std::string text(1048577,'\0'); file.read(text.data(),text.size()); text.resize(file.gcount());
-    auto data=blueprint::decode(text,fingerprint(path),count);
-    if (!data) { log("Invalid or stale blueprint companion; using defaults"); return result; }
+    auto length=file.tellg();
+    if (length<0 || length>134217728) return result;
+    std::vector<uint8_t> bytes(static_cast<size_t>(length));
+    file.seekg(0); file.read(reinterpret_cast<char*>(bytes.data()),bytes.size());
+    if (!file) return result;
+    auto png=blueprint::extract(bytes);
+    if (!png || !png->metadata) return result;
+    auto data=blueprint::decode(*png->metadata,memory_fingerprint(png->canonical),count);
+    if (!data) { log("Invalid or stale blueprint metadata; using defaults"); return result; }
     if (packing_blueprint) *packing_blueprint=*data;
     if (!entering_blueprint) return result;
     auto records=field<char*>(state,0);
     if (count && !records) return result;
     for (auto [index,limits]:data->fountains)
         entering_blueprint->settings.push_back({blueprint_identity(records+index*0x200),limits});
-    log("Loaded matching blueprint companion");
+    log("Loaded matching blueprint PNG metadata");
     return result;
 }
 template<class Function,class... Args> bool enter_blueprint(Function original,void* state,Args... args) {
@@ -205,7 +222,7 @@ void clear_clone(void* state) {
 }
 void* pack_blueprint(void* state,void* out,void* name,void* title,void* description,int color,
                      uint64_t item,void* texture,bool force,void* directory,void* folder) {
-    blueprint::Companion data;
+    blueprint::Metadata data;
     void* selection=static_cast<char*>(state)+0x2d8;
     data.buildings=field<int>(selection,8);
     if (data.buildings>=0 && data.buildings<=100000) {
@@ -229,23 +246,23 @@ void* pack_blueprint(void* state,void* out,void* name,void* title,void* descript
     return result;
 }
 bool save_array(void* bytes,const wchar_t* filename,void* manager,uint32_t flags) {
-    bool result=original_save_array(bytes,filename,manager,flags);
-    if (!result || !packing_blueprint || !filename) return result;
-    std::filesystem::path png(filename);
-    if (png.extension()!=L".png") return result;
+    auto ordinary=[&] { return original_save_array(bytes,filename,manager,flags); };
+    if (!packing_blueprint || !filename || std::filesystem::path(filename).extension()!=L".png") return ordinary();
     // Only the final PNG contains the native blueprint footer, not an image export.
     auto length=field<int64_t>(bytes,8);
-    auto buffer=field<char*>(bytes,0);
-    if (length<8 || !buffer || std::memcmp(buffer+length-4,"\xd5\xaf\x42\x50",4)!=0) return result;
-    auto hash=fingerprint(png);
-    if (hash.empty()) return result;
-    auto companion=blueprint_companion(png), temporary=companion;
-    temporary+=L".tmp";
-    std::ofstream file(temporary,std::ios::binary|std::ios::trunc);
-    file << blueprint::encode(*packing_blueprint,hash); file.close();
-    if (file && MoveFileExW(temporary.c_str(),companion.c_str(),MOVEFILE_REPLACE_EXISTING|MOVEFILE_WRITE_THROUGH))
-        log("Blueprint companion committed");
-    else log("Failed to write blueprint companion; native blueprint remains usable");
+    auto buffer=field<uint8_t*>(bytes,0);
+    if (length<8 || length>134217728 || !buffer || std::memcmp(buffer+length-4,"\xd5\xaf\x42\x50",4)!=0) return ordinary();
+    auto png=blueprint::extract({buffer,static_cast<size_t>(length)});
+    if (!png) return ordinary();
+    auto hash=memory_fingerprint(png->canonical);
+    if (hash.empty()) return ordinary();
+    auto embedded=blueprint::embed(*png,blueprint::encode(*packing_blueprint,hash));
+    if (embedded.empty()) return ordinary();
+    // SaveArrayToFile receives a TArrayView64, not an owning Unreal allocation.
+    // Its synchronous writer borrows this buffer; the original array is intact.
+    struct View { const uint8_t* data; int64_t count; } view{embedded.data(),static_cast<int64_t>(embedded.size())};
+    bool result=original_save_array(&view,filename,manager,flags);
+    if (result) log("Blueprint PNG settings written");
     return result;
 }
 void save_begin(void* action,void* info,void* slot,int user) {
