@@ -3,15 +3,19 @@
 #include <array>
 #include <cstdint>
 #include <string>
+#include <vector>
 #include "trajectory.hpp"
 namespace fc {
 void initialize(bool remove_centre);
 void shutdown();
 bool ready();
 void set_fountain_class_name(uint32_t name);
+void set_preview_class_name(uint32_t name);
 uint64_t load_generation();
 void set_facility(void* facility, Limits limits, uint32_t key, void* actor);
 std::optional<Limits> limits_for_key(uint32_t key);
+struct GhostPreview { uintptr_t actor; Limits limits; };
+std::vector<GhostPreview> ghost_previews(void* controller);
 struct Probe { Vec origin; bool vanilla, modified; std::optional<Flight> flight; };
 Probe probe(void* facility, Vec relative);
 Vec catch_point(void* receiver);

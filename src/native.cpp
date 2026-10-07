@@ -28,7 +28,7 @@ struct CloneSource { Limits limits; void* actor_class; };
 // the current world; save snapshots still include only live facilities.
 std::unordered_map<uint32_t,CloneSource> remembered;
 thread_local std::optional<CloneSource> cloning;
-uint32_t fountain_class_name{};
+uint32_t fountain_class_name{}, preview_class_name{};
 struct BlueprintIdentity {
     uint32_t key;
     uint64_t name;
@@ -99,19 +99,22 @@ std::optional<Limits> blueprint_limits(const BlueprintSession& session,void* rec
     for (auto& entry:session.settings) if (entry.identity==identity) return entry.limits;
     return {};
 }
+// Caller holds mutex. Import sessions also suppress source-ID lookup for
+// records with absent metadata, exactly as actual construction does.
+std::optional<CloneSource> clone_source(void* state,void* record) {
+    auto imported=blueprint_sessions.find(state);
+    if (imported!=blueprint_sessions.end()) {
+        if (auto limits=blueprint_limits(imported->second,record)) return CloneSource{*limits,nullptr};
+        return {};
+    }
+    auto found=remembered.find(field<uint32_t>(record,0x1ac));
+    return found==remembered.end() ? std::optional<CloneSource>{} : found->second;
+}
 bool clone(void* controller,const Vec* position,uint8_t rotation,void* command,bool ignore_cost) {
     auto previous=cloning;
-    cloning.reset();
     {
-        uint32_t source=field<uint32_t>(command,0x1ac);
         std::scoped_lock lock(mutex);
-        auto imported=blueprint_sessions.find(controller);
-        if (imported!=blueprint_sessions.end()) {
-            if (auto limits=blueprint_limits(imported->second,command)) cloning=CloneSource{*limits,nullptr};
-        } else {
-            auto found=remembered.find(source);
-            if (found!=remembered.end()) cloning=found->second;
-        }
+        cloning=clone_source(controller,command);
     }
     bool result=original_clone(controller,position,rotation,command,ignore_cost);
     cloning=previous;
@@ -463,6 +466,7 @@ void initialize(bool remove) {
 }
 bool ready() { return active; }
 void set_fountain_class_name(uint32_t name) { fountain_class_name=name; }
+void set_preview_class_name(uint32_t name) { preview_class_name=name; }
 uint64_t load_generation() { return generation.load(); }
 void set_facility(void* f,Limits limits,uint32_t key,void* actor) {
     if (!active) return;
@@ -483,6 +487,34 @@ std::optional<Limits> limits_for_key(uint32_t key) {
     std::scoped_lock lock(mutex);
     auto found=remembered.find(key);
     return found==remembered.end() ? std::optional<Limits>{} : found->second.limits;
+}
+std::vector<GhostPreview> ghost_previews(void* controller) {
+    std::vector<GhostPreview> result;
+    if (!active || !controller || !preview_class_name) return result;
+    // CurrentState can be null during menus and loading. The reflected name
+    // getter assumes an active state; use the serial-checked weak resolver.
+    auto state=address<void*(*)(void*)>(0x141540ca0)(static_cast<char*>(controller)+0xaf0);
+    auto state_class=state ? field<void*>(state,0x10) : nullptr;
+    if (!state_class || field<uint32_t>(state_class,0x18)!=preview_class_name
+        || !field<bool>(state,0x148)) return result;
+    // The Clone state's records contain native entity references to each
+    // preview actor. Resolve through the game's weak-object checks; do not
+    // associate ghosts by position or their shared zero SettleKey.
+    auto records=field<char*>(state,0x2d8);
+    int count=field<int>(state,0x2e0);
+    if (!records || count<0 || count>100000) return result;
+    std::scoped_lock lock(mutex);
+    for (int index=0;index<count;++index) {
+        auto record=records+index*0x200;
+        auto actor=address<void*(*)(void*)>(0x144a5b040)(record+0x1d8);
+        auto actor_class=actor ? field<void*>(actor,0x10) : nullptr;
+        if (!actor_class || !fountain_class_name || field<uint32_t>(actor_class,0x18)!=fountain_class_name
+            || field<bool>(actor,0x2b8) || !field<void*>(actor,0x2f0)
+            || field<int>(field<void*>(actor,0x2f0),0xc8)!=2) continue;
+        auto source=clone_source(state,record);
+        result.push_back({reinterpret_cast<uintptr_t>(actor),source ? source->limits : Limits{}});
+    }
+    return result;
 }
 Probe probe(void* f,Vec relative) {
     Probe result{};

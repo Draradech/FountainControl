@@ -16,7 +16,7 @@ state=lua.luaL_newstate();lua.luaL_openlibs(state)
 try:
     with tempfile.TemporaryDirectory() as temporary:
         # Lua long strings avoid shell/string interpolation of paths.
-        code=f"arg={{[1]=[==[{root}]==],[2]=[==[{temporary}]==]}}; dofile(arg[1]..'/tests/state.lua')"
+        code=f"arg={{[1]=[==[{root}]==],[2]=[==[{temporary}]==]}}; dofile(arg[1]..'/tests/state.lua'); dofile(arg[1]..'/tests/preview.lua')"
         status=lua.luaL_loadstring(state,code.encode()) or lua.lua_pcallk(state,0,0,0,0,None)
         if status: raise RuntimeError(lua.lua_tolstring(state,-1,None).decode())
 finally:

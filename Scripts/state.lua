@@ -26,19 +26,21 @@ return function(root)
         FCSetFacility(actor.SmartCannonFacility:GetAddress(),drop,horizontal,actor:GetSettleKey(),actor:GetAddress())
         FC.indicator(actor)
     end
-    function FC.indicator(actor)
+    function FC.indicator(actor,horizontal,cache)
         local mesh=actor.Indicator
         if not mesh or not mesh:IsValid() then return end
         local address=mesh:GetAddress()
-        local baseline=FC.indicators[address]
-        if not baseline or baseline.key~=key(actor) then
+        cache=cache or FC.indicators
+        local baseline=cache[address]
+        if not baseline or baseline.key~=key(actor) or baseline.owner~=actor:GetAddress() then
             local scale=mesh:K2_GetComponentScale()
             local lo,hi={},{}; mesh:GetLocalBounds(lo,hi)
-            baseline={key=key(actor),x=scale.X,y=scale.Y,z=scale.Z,r=math.max(math.abs(lo.X),math.abs(hi.X))*math.abs(scale.X)}
+            baseline={key=key(actor),owner=actor:GetAddress(),mesh=mesh,actor=actor,x=scale.X,y=scale.Y,z=scale.Z,r=math.max(math.abs(lo.X),math.abs(hi.X))*math.abs(scale.X)}
             if baseline.r<=0 then return end
-            FC.indicators[address]=baseline
+            cache[address]=baseline
         end
-        local h=FC.get(actor).horizontal
+        local h=horizontal
+        if h==nil then h=FC.get(actor).horizontal end
         local factor=h>=0 and math.min(1,h/baseline.r) or 1
         mesh:SetWorldScale3D({X=baseline.x*factor,Y=baseline.y*factor,Z=baseline.z})
     end
@@ -93,6 +95,35 @@ return function(root)
         for address in pairs(FC.indicators) do if not meshes[address] then FC.indicators[address]=nil end end
         FC.actors=seen
     end
+    FC.preview_indicators={}
+    function FC.preview()
+        local limits={}
+        local pc=FindFirstOf('BeltTDPlayerController')
+        if pc and pc:IsValid() then limits=FCGetGhostPreviews(pc:GetAddress()) end
+        local seen={}
+        if next(limits) then
+            for _,actor in ipairs(FindAllOf('BP_SmartCannon_C') or {}) do
+                local horizontal=limits[actor:GetAddress()]
+                if horizontal~=nil and actor:IsValid() and not actor:GetSettledDown() then
+                    actor:ShowIndicator(true)
+                    FC.indicator(actor,horizontal,FC.preview_indicators)
+                    if actor.Indicator and actor.Indicator:IsValid() then seen[actor.Indicator:GetAddress()]=true end
+                end
+            end
+        end
+        for address,baseline in pairs(FC.preview_indicators) do
+            if not seen[address] then
+                -- Restore before a pooled ghost is reused for another selection.
+                if baseline.actor:IsValid() and baseline.mesh:IsValid()
+                    and baseline.actor.Indicator:GetAddress()==address and not baseline.actor:GetSettledDown() then
+                    baseline.mesh:SetWorldScale3D({X=baseline.x,Y=baseline.y,Z=baseline.z})
+                    baseline.actor:ShowIndicator(false)
+                end
+                FC.preview_indicators[address]=nil
+            end
+        end
+    end
+    LoopInGameThreadWithDelay(100,FC.preview)
     LoopInGameThreadWithDelay(1000,FC.scan)
     return FC
 end

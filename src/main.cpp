@@ -42,6 +42,21 @@ int native_get(const RC::LuaMadeSimple::Lua& lua) {
     auto value=fc::limits_for_key(static_cast<uint32_t>(lua.get_integer()));
     lua.set_bool(value.has_value()); lua.set_number(value ? value->drop : 1000); lua.set_number(value ? value->horizontal : -1); return 3;
 }
+int native_ghosts(const RC::LuaMadeSimple::Lua& lua) {
+    auto controller=reinterpret_cast<void*>(lua.get_integer());
+    auto table=lua.prepare_new_table();
+    for (auto preview:fc::ghost_previews(controller)) {
+        // Use exported LuaMadeSimple methods; its inline table templates call
+        // Lua C symbols that this UE4SS DLL does not export.
+        lua.set_integer(preview.actor);
+        lua.set_number(preview.limits.horizontal);
+        table.fuse_pair();
+    }
+    return 1;
+}
+int native_preview_class(const RC::LuaMadeSimple::Lua& lua) {
+    fc::set_preview_class_name(static_cast<uint32_t>(lua.get_integer())); return 0;
+}
 int native_class_name(const RC::LuaMadeSimple::Lua& lua) {
     fc::set_fountain_class_name(static_cast<uint32_t>(lua.get_integer())); return 0;
 }
@@ -153,6 +168,8 @@ public:
             state.register_function("FCTakeInteraction", native_take_interaction);
             state.register_function("FCGetNativeLimits", native_get);
             state.register_function("FCSetFountainClassName", native_class_name);
+            state.register_function("FCGetGhostPreviews", native_ghosts);
+            state.register_function("FCSetPreviewClassName", native_preview_class);
             state.register_function("FCProbeReach", native_probe);
             state.register_function("FCProbeCatch", native_catch);
             state.register_function("FCFlightStats", native_stats);
