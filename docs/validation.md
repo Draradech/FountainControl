@@ -1,8 +1,9 @@
-# Validation through 0.1.1
+# Validation through 0.1.2
 
 Validated on 2026-10-07 with Steam build 25321648, Alchemy Factory 1.0.4963,
 UE 5.7.4, UE4SS v3.0.1-946-g265115c0 and Proton Experimental. Integration
-work used a disposable `FountainControl_Dev` copy of the world. The original
+work used disposable `FountainControl_Dev` and `FountainControl_Blueprint_Dev`
+copies of the world. The original
 world's save files were not edited.
 
 ## Completed checks
@@ -60,8 +61,7 @@ automated production-chain test.
 The native range oracle and controlled live deliveries provide detailed
 geometry coverage. Live arrival testing covered hoppers; cauldron, goods,
 raw-material and trash receive hooks still need equivalent in-game scenarios.
-Cross-world imported blueprints, multiplayer and hanging fountains were not
-validated. Hanging fountains and other launchers are outside the intended
+Multiplayer was not validated. Hanging fountains and other launchers are outside the intended
 scope.
 
 Fingerprint rejection after a changed save was tested in the host suite.
@@ -82,3 +82,31 @@ component, opens the proper layer through actual keyboard input, and replaces
 the generic sliders and plain background with the bank portal’s native style.
 The geometry and persistence results above remain applicable; their logic did
 not change.
+
+## Blueprint support in 0.1.2
+
+- Host tests passed with AddressSanitizer and UndefinedBehaviorSanitizer:
+  metadata round trips, schema/hash/count/index/bounds checks, PNG insertion,
+  replacement, CRC corruption, duplicate chunks and truncated/malformed input.
+- A two-fountain selection was saved through the real blueprint interface.
+  Independent Python parsing verified one `fcRs` chunk, its CRC32 and the
+  SHA256 of the unchanged PNG/native payload excluding that chunk.
+- Import into a second disposable world restored 700/300 and 350/150 cm limits
+  despite deliberately conflicting source IDs set to 100/50 cm. Actual native
+  cost-free construction assigned new IDs and adopted both settings. A separate
+  restart and ordinary mouse placement through the game UI repeated the same
+  collision test and restored both limits.
+- A rotated placement restored the expected setting on its successful building;
+  the other building was blocked by the available floor/geometry. This is
+  partial rotation coverage, not a successful two-building rotated placement.
+- Editing the saved blueprint's title and description preserved both entries,
+  refreshed the fingerprint and retained exactly one metadata chunk.
+- With FountainControl's DLL and scripts disabled, the same PNG entered native
+  placement mode and an ordinary mouse click constructed both fountains.
+  UE4SS and a temporary Lua-only inspection mailbox remained installed.
+- Workshop's native upload path was inspected and passes the existing PNG as
+  content without re-encoding. An online publish/download was not tested.
+
+`tools/game_tests/blueprint.lua` exercises actual cost-free construction only
+in disposable development worlds. Its input PNG contains the two expected
+settings. The per-save persistence and UI code are unchanged by this release.

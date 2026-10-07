@@ -37,10 +37,13 @@ recursively pulls in the private Unreal sources through the debug GUI.
 
 ```sh
 python3 tools/test_state.py
+clang++ -std=c++20 -O2 -fsanitize=address,undefined -I src tests/blueprint.cpp -o /tmp/fountain-blueprint-test
+/tmp/fountain-blueprint-test
 .tools/venv/bin/pip install -r tools/test-requirements.txt
 .tools/venv/bin/python tools/test_trajectory.py
 ```
 
+The blueprint test checks portable metadata and PNG parsing with host sanitizers.
 The state test requires the host Lua 5.4 shared library (`liblua5.4-0` on
 Ubuntu). The trajectory test executes the installed, supported game's native
 reach predicate in Unicorn and compares it with the C++ solver. It reads and

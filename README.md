@@ -1,6 +1,6 @@
 # FountainControl
 
-A UE4SS mod for Alchemy Factory's upright Arcane Fountain. Version 0.1.1 is
+A UE4SS mod for Alchemy Factory's upright Arcane Fountain. Version 0.1.2 is
 an experimental build, tested in a separate copy of a singleplayer world.
 This directory is an independent Git repository.
 
@@ -17,6 +17,8 @@ This directory is an independent Git repository.
   Disabling it retains the original throw model with the distance limits.
 - Default fountain settings: 1000 cm drop and Default horizontal range.
 - Moving preserves settings; cloning copies settings.
+- Saved blueprints embed both limits inside the PNG. Share one file, including
+  through Workshop; imported fountains adopt their own saved limits.
 - Store settings in one JSON companion per save, keyed by persistent building
   ID and bound to the save's fingerprint. Do not alter game save contents or
   serialization flags. Missing or mismatched companions use defaults.
@@ -64,8 +66,9 @@ Updates require checking addresses, layouts and behavior before adding support.
 
 This mod handles the upright `BP_SmartCannon_C`, MovePattern 2. Ordinary
 in-world cloning and cut/move preserve limits, including when a move creates
-a new building ID. Imported blueprints do not carry companion settings from
-another world; cross-world blueprint behavior has not been validated.
+a new building ID. Saved blueprint PNGs carry limits across worlds, including
+when source building IDs collide with unrelated destination buildings. Existing
+blueprints without embedded settings use defaults.
 Multiplayer and hanging fountains are outside scope.
 
 The DLL hooks native range, selection, throws, visuals, save completion and
@@ -75,5 +78,5 @@ game thread. No Unreal installation, asset packs or save-schema changes are
 needed.
 
 See [build instructions](docs/build.md), [validation](docs/validation.md) and
-[native implementation notes](docs/native.md). Build and investigation
+[native implementation notes](docs/native.md) and [blueprint format](docs/blueprints.md). Build and investigation
 milestones are committed in this repository.

@@ -97,3 +97,13 @@ inject one item through the real hopper receive path, and invoke a source-based
 clone. The throw receiver's context is a native worker-parameter structure,
 not the GameState actor. The clone method belongs to SpatialCloneState,
 whose typed outer is the player controller.
+
+## Portable blueprints
+
+See [blueprint format and hooks](blueprints.md). Six additional hooks capture
+settings on export and restore them on import. Imported settings match copied
+building records by source key, name and relative position, then apply only
+to confirmed upright MovePattern 2 actors. Empty import sessions prevent
+cross-world source-ID collisions from inheriting local settings. Saved
+blueprint edits retain their own metadata instead of using the current world
+selection. The native save format and property flags remain unchanged.
