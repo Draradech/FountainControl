@@ -29,7 +29,8 @@ for ax, original, color, title in zip(
         ax.plot(-inner, y, color='#42647d', linewidth=1.2)
         ax.plot(outer, y, color='#42647d', linewidth=1.2)
         ax.plot(-outer, y, color='#42647d', linewidth=1.2)
-        ax.hlines(-10, -outer[0], outer[0], color='#42647d', linewidth=1.2)
+        ax.hlines([y[0], y[0]], [-outer[0], inner[0]], [-inner[0], outer[0]],
+                  color='#42647d', linewidth=1.2)
     else:
         ax.fill_betweenx(y, -outer, outer, color=color, alpha=.85,
                          edgecolor='none', linewidth=0)
