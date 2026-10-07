@@ -42,6 +42,9 @@ int native_get(const RC::LuaMadeSimple::Lua& lua) {
     auto value=fc::limits_for_key(static_cast<uint32_t>(lua.get_integer()));
     lua.set_bool(value.has_value()); lua.set_number(value ? value->drop : 1000); lua.set_number(value ? value->horizontal : -1); return 3;
 }
+int native_class_name(const RC::LuaMadeSimple::Lua& lua) {
+    fc::set_fountain_class_name(static_cast<uint32_t>(lua.get_integer())); return 0;
+}
 int native_probe(const RC::LuaMadeSimple::Lua& lua) {
     auto f=reinterpret_cast<void*>(lua.get_integer());
     fc::Vec delta{lua.get_number(),lua.get_number(),lua.get_number()};
@@ -143,6 +146,7 @@ public:
             state.register_function("FCSetInteraction", native_interaction);
             state.register_function("FCTakeInteraction", native_take_interaction);
             state.register_function("FCGetNativeLimits", native_get);
+            state.register_function("FCSetFountainClassName", native_class_name);
             state.register_function("FCProbeReach", native_probe);
             state.register_function("FCProbeCatch", native_catch);
             state.register_function("FCFlightStats", native_stats);

@@ -8,6 +8,7 @@ namespace fc {
 void initialize(bool remove_centre);
 void shutdown();
 bool ready();
+void set_fountain_class_name(uint32_t name);
 uint64_t load_generation();
 void set_facility(void* facility, Limits limits, uint32_t key, void* actor);
 std::optional<Limits> limits_for_key(uint32_t key);

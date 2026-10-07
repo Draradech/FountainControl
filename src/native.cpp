@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include <vector>
 #include "native.hpp"
+#include "blueprint.hpp"
 
 namespace fc {
 namespace {
@@ -27,6 +28,23 @@ struct CloneSource { Limits limits; void* actor_class; };
 // the current world; save snapshots still include only live facilities.
 std::unordered_map<uint32_t,CloneSource> remembered;
 thread_local std::optional<CloneSource> cloning;
+uint32_t fountain_class_name{};
+struct BlueprintIdentity {
+    uint32_t key;
+    uint64_t name;
+    Vec position;
+    bool operator==(const BlueprintIdentity& b) const {
+        return key==b.key && name==b.name && position.x==b.position.x
+            && position.y==b.position.y && position.z==b.position.z;
+    }
+};
+struct BlueprintSetting { BlueprintIdentity identity; Limits limits; };
+struct BlueprintSession { std::vector<BlueprintSetting> settings; };
+// An empty session is intentional: a vanilla blueprint must not borrow limits
+// from an unrelated building with the same original ID in the destination world.
+std::unordered_map<void*,BlueprintSession> blueprint_sessions;
+thread_local BlueprintSession* entering_blueprint{};
+thread_local blueprint::Companion* packing_blueprint{};
 std::filesystem::path save_root;
 struct Snapshot { std::filesystem::path save; std::string settings; };
 std::unordered_map<void*,Snapshot> pending_saves;
@@ -73,14 +91,27 @@ using Clone = bool(*)(void*,const Vec*,uint8_t,void*,bool);
 Clone original_clone;
 using Build = void*(*)(void*,void*,void*,void*,bool,uint64_t,const Vec*,bool,uint8_t,bool,void*);
 Build original_build;
+BlueprintIdentity blueprint_identity(void* record) {
+    return {field<uint32_t>(record,0x1ac),field<uint64_t>(record,0x1d0),field<Vec>(record,0x1b8)};
+}
+std::optional<Limits> blueprint_limits(const BlueprintSession& session,void* record) {
+    auto identity=blueprint_identity(record);
+    for (auto& entry:session.settings) if (entry.identity==identity) return entry.limits;
+    return {};
+}
 bool clone(void* controller,const Vec* position,uint8_t rotation,void* command,bool preview) {
     auto previous=cloning;
     cloning.reset();
     if (!preview) {
         uint32_t source=field<uint32_t>(command,0x1ac);
         std::scoped_lock lock(mutex);
-        auto found=remembered.find(source);
-        if (found!=remembered.end()) cloning=found->second;
+        auto imported=blueprint_sessions.find(controller);
+        if (imported!=blueprint_sessions.end()) {
+            if (auto limits=blueprint_limits(imported->second,command)) cloning=CloneSource{*limits,nullptr};
+        } else {
+            auto found=remembered.find(source);
+            if (found!=remembered.end()) cloning=found->second;
+        }
     }
     bool result=original_clone(controller,position,rotation,command,preview);
     cloning=previous;
@@ -91,7 +122,11 @@ void* build(void* subsystem,void* out,void* controller,void* variant,bool a,uint
     void* result=original_build(subsystem,out,controller,variant,a,area,position,b,active_index,c,extension);
     if (cloning && field<bool>(out,0x14)) {
         void* actor=field<void*>(out,0x20);
-        if (actor && field<void*>(actor,0x10)==cloning->actor_class) {
+        void* actor_class=actor ? field<void*>(actor,0x10) : nullptr;
+        bool matches=actor_class && (cloning->actor_class ? actor_class==cloning->actor_class
+            : fountain_class_name && field<uint32_t>(actor_class,0x18)==fountain_class_name
+                && field<void*>(actor,0x2f0) && field<int>(field<void*>(actor,0x2f0),0xc8)==2);
+        if (matches) {
             set_facility(field<void*>(actor,0x2f8),cloning->limits,field<uint32_t>(actor,0x2c4),actor);
             log("Copied cloned fountain settings");
         }
@@ -107,6 +142,106 @@ std::wstring unreal_string(void* p) {
     int count=field<int>(p,8);
     if (count<=0 || count>32768) return {};
     return {field<wchar_t*>(p,0),static_cast<size_t>(count-1)};
+}
+using ReadBlueprint = void*(*)(void*,void*,void*);
+ReadBlueprint original_read_blueprint;
+using EnterBlueprintIndex = bool(*)(void*,void*);
+using EnterBlueprintPath = bool(*)(void*,void*,void*);
+EnterBlueprintIndex original_enter_blueprint_index;
+EnterBlueprintPath original_enter_blueprint_path;
+Worker original_clear_clone;
+// The FString/FText arguments here are pointers to by-value Unreal ABI copies.
+using PackBlueprint = void*(*)(void*,void*,void*,void*,void*,int,uint64_t,void*,bool,void*,void*);
+PackBlueprint original_pack_blueprint;
+using SaveArray = bool(*)(void*,const wchar_t*,void*,uint32_t);
+SaveArray original_save_array;
+std::filesystem::path blueprint_companion(std::filesystem::path png) {
+    png+=L".fountains"; return png;
+}
+void* read_blueprint(void* out,void* directory,void* filename) {
+    auto path=std::filesystem::path(unreal_string(directory))/unreal_string(filename);
+    void* result=original_read_blueprint(out,directory,filename);
+    if (!entering_blueprint || !field<bool>(out,0)) return result;
+    void* state=static_cast<char*>(out)+0x50;
+    int count=field<int>(state,8);
+    auto companion=blueprint_companion(path);
+    std::ifstream file(companion,std::ios::binary);
+    if (!file) return result;
+    std::string text(1048577,'\0'); file.read(text.data(),text.size()); text.resize(file.gcount());
+    auto data=blueprint::decode(text,fingerprint(path),count);
+    if (!data) { log("Invalid or stale blueprint companion; using defaults"); return result; }
+    auto records=field<char*>(state,0);
+    if (count && !records) return result;
+    for (auto [index,limits]:data->fountains)
+        entering_blueprint->settings.push_back({blueprint_identity(records+index*0x200),limits});
+    log("Loaded matching blueprint companion");
+    return result;
+}
+template<class Function,class... Args> bool enter_blueprint(Function original,void* state,Args... args) {
+    BlueprintSession session;
+    auto previous=entering_blueprint;
+    entering_blueprint=&session;
+    bool result=original(state,args...);
+    entering_blueprint=previous;
+    std::scoped_lock lock(mutex);
+    blueprint_sessions.erase(state);
+    if (result) blueprint_sessions.emplace(state,std::move(session));
+    return result;
+}
+bool enter_blueprint_index(void* state,void* index) {
+    return enter_blueprint(original_enter_blueprint_index,state,index);
+}
+bool enter_blueprint_path(void* state,void* directory,void* filename) {
+    return enter_blueprint(original_enter_blueprint_path,state,directory,filename);
+}
+void clear_clone(void* state) {
+    { std::scoped_lock lock(mutex); blueprint_sessions.erase(state); }
+    original_clear_clone(state);
+}
+void* pack_blueprint(void* state,void* out,void* name,void* title,void* description,int color,
+                     uint64_t item,void* texture,bool force,void* directory,void* folder) {
+    blueprint::Companion data;
+    void* selection=static_cast<char*>(state)+0x2d8;
+    data.buildings=field<int>(selection,8);
+    if (data.buildings>=0 && data.buildings<=100000) {
+        std::scoped_lock lock(mutex);
+        auto records=field<char*>(selection,0);
+        auto imported=blueprint_sessions.find(state);
+        for (int index=0;records && index<data.buildings;++index) {
+            auto record=records+index*0x200;
+            if (imported!=blueprint_sessions.end()) {
+                if (auto value=blueprint_limits(imported->second,record)) data.fountains[index]=*value;
+            } else {
+                auto source=remembered.find(field<uint32_t>(record,0x1ac));
+                if (source!=remembered.end()) data.fountains[index]=source->second.limits;
+            }
+        }
+    }
+    auto previous=packing_blueprint;
+    packing_blueprint=&data;
+    void* result=original_pack_blueprint(state,out,name,title,description,color,item,texture,force,directory,folder);
+    packing_blueprint=previous;
+    return result;
+}
+bool save_array(void* bytes,const wchar_t* filename,void* manager,uint32_t flags) {
+    bool result=original_save_array(bytes,filename,manager,flags);
+    if (!result || !packing_blueprint || !filename) return result;
+    std::filesystem::path png(filename);
+    if (png.extension()!=L".png") return result;
+    // Only the final PNG contains the native blueprint footer, not an image export.
+    auto length=field<int64_t>(bytes,8);
+    auto buffer=field<char*>(bytes,0);
+    if (length<8 || !buffer || std::memcmp(buffer+length-4,"\xd5\xaf\x42\x50",4)!=0) return result;
+    auto hash=fingerprint(png);
+    if (hash.empty()) return result;
+    auto companion=blueprint_companion(png), temporary=companion;
+    temporary+=L".tmp";
+    std::ofstream file(temporary,std::ios::binary|std::ios::trunc);
+    file << blueprint::encode(*packing_blueprint,hash); file.close();
+    if (file && MoveFileExW(temporary.c_str(),companion.c_str(),MOVEFILE_REPLACE_EXISTING|MOVEFILE_WRITE_THROUGH))
+        log("Blueprint companion committed");
+    else log("Failed to write blueprint companion; native blueprint remains usable");
+    return result;
 }
 void save_begin(void* action,void* info,void* slot,int user) {
     {
@@ -281,6 +416,12 @@ void initialize(bool remove) {
         {0x144acb850,reinterpret_cast<void*>(&reload),reinterpret_cast<void**>(&original_reload)},
         {0x144ac84c0,reinterpret_cast<void*>(&clone),reinterpret_cast<void**>(&original_clone)},
         {0x144ad34d0,reinterpret_cast<void*>(&build),reinterpret_cast<void**>(&original_build)},
+        {0x144aca1e0,reinterpret_cast<void*>(&read_blueprint),reinterpret_cast<void**>(&original_read_blueprint)},
+        {0x144ab6d90,reinterpret_cast<void*>(&enter_blueprint_index),reinterpret_cast<void**>(&original_enter_blueprint_index)},
+        {0x144ab7180,reinterpret_cast<void*>(&enter_blueprint_path),reinterpret_cast<void**>(&original_enter_blueprint_path)},
+        {0x144ab3ce0,reinterpret_cast<void*>(&clear_clone),reinterpret_cast<void**>(&original_clear_clone)},
+        {0x144ac6000,reinterpret_cast<void*>(&pack_blueprint),reinterpret_cast<void**>(&original_pack_blueprint)},
+        {0x1412efd40,reinterpret_cast<void*>(&save_array),reinterpret_cast<void**>(&original_save_array)},
     };
     if (MH_Initialize()!=MH_OK) { log("MinHook initialization failed"); return; }
     for (auto h:hooks) {
@@ -299,6 +440,7 @@ void initialize(bool remove) {
     log("Verified Alchemy Factory 1.0.4963; all fountain hooks enabled");
 }
 bool ready() { return active; }
+void set_fountain_class_name(uint32_t name) { fountain_class_name=name; }
 uint64_t load_generation() { return generation.load(); }
 void set_facility(void* f,Limits limits,uint32_t key,void* actor) {
     if (!active) return;
@@ -384,7 +526,7 @@ bool clone_probe(void* subsystem,void* state,uint32_t key,Vec position) {
 }
 std::array<uint64_t,3> flight_stats() { return {repaired_counts[0].load(),repaired_counts[1].load(),repaired_counts[2].load()}; }
 void remove_facility(void* f) { std::scoped_lock lock(mutex); facilities.erase(f); building_keys.erase(f); actor_classes.erase(f); }
-void reset() { std::scoped_lock lock(mutex); facilities.clear(); building_keys.clear(); actor_classes.clear(); remembered.clear(); interactions.clear(); pending_interaction=0; }
+void reset() { std::scoped_lock lock(mutex); facilities.clear(); building_keys.clear(); actor_classes.clear(); remembered.clear(); interactions.clear(); blueprint_sessions.clear(); pending_interaction=0; }
 void set_interaction(void* component,void* actor) {
     if (!active) return;
     std::scoped_lock lock(mutex);

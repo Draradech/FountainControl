@@ -6,6 +6,7 @@ end
 print(string.format('[FountainControl] %s; RemoveCenterExclusion=%s\n', name, tostring(remove)))
 local root, development = FCNativeRoot()
 if ready then
+    FCSetFountainClassName(FName('BP_SmartCannon_C'):GetComparisonIndex())
     local state=dofile(root .. '/Scripts/state.lua')(root)
     dofile(root .. '/Scripts/ui.lua')(state)
 end
