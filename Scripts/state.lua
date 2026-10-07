@@ -31,10 +31,10 @@ return function(root)
         if not mesh or not mesh:IsValid() then return end
         local address=mesh:GetAddress()
         local baseline=FC.indicators[address]
-        if not baseline then
+        if not baseline or baseline.key~=key(actor) then
             local scale=mesh:K2_GetComponentScale()
             local lo,hi={},{}; mesh:GetLocalBounds(lo,hi)
-            baseline={x=scale.X,y=scale.Y,z=scale.Z,r=math.max(math.abs(lo.X),math.abs(hi.X))*math.abs(scale.X)}
+            baseline={key=key(actor),x=scale.X,y=scale.Y,z=scale.Z,r=math.max(math.abs(lo.X),math.abs(hi.X))*math.abs(scale.X)}
             if baseline.r<=0 then return end
             FC.indicators[address]=baseline
         end
@@ -78,7 +78,7 @@ return function(root)
                 FC.load_settings(subsystem)
             end
         end
-        local seen={}
+        local seen,meshes={},{}
         for _,actor in ipairs(FindAllOf('BP_SmartCannon_C') or {}) do
             if FC.is_fountain(actor) then
                 local address=actor.SmartCannonFacility:GetAddress()
@@ -86,9 +86,11 @@ return function(root)
                 local value=FC.get(actor)
                 FCSetFacility(address,value.drop,value.horizontal,actor:GetSettleKey(),actor:GetAddress())
                 FC.indicator(actor)
+                if actor.Indicator and actor.Indicator:IsValid() then meshes[actor.Indicator:GetAddress()]=true end
             end
         end
         for address in pairs(FC.actors) do if not seen[address] then FCRemoveFacility(address) end end
+        for address in pairs(FC.indicators) do if not meshes[address] then FC.indicators[address]=nil end end
         FC.actors=seen
     end
     LoopInGameThreadWithDelay(1000,FC.scan)

@@ -55,6 +55,21 @@ int native_stats(const RC::LuaMadeSimple::Lua& lua) {
     if (!development) return 0;
     for (auto n:fc::flight_stats()) lua.set_integer(n); return 3;
 }
+int native_deliver(const RC::LuaMadeSimple::Lua& lua) {
+    auto facility=reinterpret_cast<void*>(lua.get_integer());
+    auto receiver=reinterpret_cast<void*>(lua.get_integer());
+    auto subsystem=reinterpret_cast<void*>(lua.get_integer());
+    auto visuals=reinterpret_cast<void*>(lua.get_integer());
+    auto item=static_cast<uint64_t>(lua.get_integer());
+    lua.set_bool(development && fc::deliver_probe(facility,receiver,subsystem,visuals,item)); return 1;
+}
+int native_clone(const RC::LuaMadeSimple::Lua& lua) {
+    auto subsystem=reinterpret_cast<void*>(lua.get_integer());
+    auto controller=reinterpret_cast<void*>(lua.get_integer());
+    auto key=static_cast<uint32_t>(lua.get_integer());
+    fc::Vec position{lua.get_number(),lua.get_number(),lua.get_number()};
+    lua.set_bool(development && fc::clone_probe(subsystem,controller,key,position)); return 1;
+}
 int native_hash(const RC::LuaMadeSimple::Lua& lua) {
     auto input = lua.get_string();
     auto result = fc::fingerprint(std::filesystem::path(std::u8string_view(reinterpret_cast<const char8_t*>(input.data()),input.size())));
@@ -123,6 +138,8 @@ public:
             state.register_function("FCProbeReach", native_probe);
             state.register_function("FCProbeCatch", native_catch);
             state.register_function("FCFlightStats", native_stats);
+            state.register_function("FCProbeDeliver", native_deliver);
+            state.register_function("FCProbeClone", native_clone);
             state.register_function("FCFingerprint", native_hash);
             state.register_function("FCSetSaveRoot", native_save_root);
         };

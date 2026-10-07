@@ -21,6 +21,9 @@ std::unordered_map<void*,uint32_t> building_keys;
 std::unordered_map<void*,void*> actor_classes;
 std::array<std::atomic<uint64_t>,3> repaired_counts{};
 struct CloneSource { Limits limits; void* actor_class; };
+// Cut/move can destroy the source before rebuilding it. Keep its settings for
+// the current world; save snapshots still include only live facilities.
+std::unordered_map<uint32_t,CloneSource> remembered;
 thread_local std::optional<CloneSource> cloning;
 std::filesystem::path save_root;
 struct Snapshot { std::filesystem::path save; std::string settings; };
@@ -61,9 +64,8 @@ bool clone(void* controller,const Vec* position,uint8_t rotation,void* command,b
     if (!preview) {
         uint32_t source=field<uint32_t>(command,0x1ac);
         std::scoped_lock lock(mutex);
-        for (auto [facility,key]:building_keys) if (key==source) {
-            cloning=CloneSource{facilities.at(facility),actor_classes.at(facility)}; break;
-        }
+        auto found=remembered.find(source);
+        if (found!=remembered.end()) cloning=found->second;
     }
     bool result=original_clone(controller,position,rotation,command,preview);
     cloning=previous;
@@ -292,14 +294,15 @@ void set_facility(void* f,Limits limits,uint32_t key,void* actor) {
         facilities[f]=limits;
         building_keys[f]=key;
         actor_classes[f]=field<void*>(actor,0x10);
+        remembered[key]={limits,actor_classes[f]};
     }
     // The normal activation path rebuilds the list on its next update.
     if (changed) field<bool>(f,0x298)=false;
 }
 std::optional<Limits> limits_for_key(uint32_t key) {
     std::scoped_lock lock(mutex);
-    for (auto [f,id]:building_keys) if (id==key) return facilities.at(f);
-    return {};
+    auto found=remembered.find(key);
+    return found==remembered.end() ? std::optional<Limits>{} : found->second.limits;
 }
 Probe probe(void* f,Vec relative) {
     Probe result{};
@@ -312,13 +315,60 @@ Probe probe(void* f,Vec relative) {
     return result;
 }
 Vec catch_point(void* receiver) {
+    if (!receiver) return {};
     Vec result{}; auto vt=field<void**>(receiver,0);
     reinterpret_cast<Catch>(vt[0x568/8])(receiver,&result);
     return result;
 }
+bool deliver_probe(void* facility,void* receiver,void* subsystem,void* visuals,uint64_t item) {
+    if (!active || !receiver || !subsystem || !visuals || !limits_for(facility)) return false;
+    void* spatial=field<void*>(subsystem,0xc0);
+    if (!spatial || !field<void*>(spatial,0x600)) return false;
+    // Production receives FTypeGroupParam, not the GameState actor itself.
+    alignas(16) std::array<char,0xd8> parameters{};
+    field<void*>(parameters.data(),0x68)=field<void*>(subsystem,0xb8);
+    field<void*>(parameters.data(),0x70)=spatial;
+    field<void*>(parameters.data(),0x98)=visuals;
+    Vec target=catch_point(receiver);
+    if (!reach(facility,&target)) return false;
+    auto config=address<void*(*)(void*,uint64_t)>(0x1449ec190)(facility,item);
+    if (!config || !field<void*>(config,0x28)) return false;
+    alignas(16) std::array<char,0x70> product{};
+    field<int>(product.data(),8)=1;
+    field<uint64_t>(product.data(),0x48)=item;
+    field<int>(product.data(),0x50)=1;
+    Vec origin{}; address<Emit>(0x144a1c6c0)(facility,&origin);
+    void* previous=emitting; emitting=facility;
+    // A synthetic one-item input exercises the real hopper worker, visual
+    // entity and arrival path. It is not a replacement production launch path.
+    receive<2>(receiver,0,parameters.data(),product.data(),&origin,500,field<void*>(config,0x28),2);
+    emitting=previous;
+    return true;
+}
+bool clone_probe(void* subsystem,void* state,uint32_t key,Vec position) {
+    if (!active || !subsystem || !state || !limits_for_key(key)) return false;
+    auto controller_class=address<void*(*)()>(0x1449bcb80)();
+    // Clone is a SpatialCloneState member whose typed outer is the controller.
+    if (!address<void*(*)(void*,void*)>(0x1415272f0)(state,controller_class)) return false;
+    void* info=address<void*(*)(void*,uint32_t)>(0x144a62a60)(subsystem,key);
+    if (!info) return false;
+    alignas(16) std::array<char,0x218> packet{};
+    auto p=packet.data();
+    field<uint8_t>(p,0x1a0)=field<uint8_t>(info,0x20);
+    field<uint8_t>(p,0x1a1)=field<uint8_t>(info,0x22);
+    field<uint8_t>(p,0x1a2)=field<uint8_t>(info,0x23);
+    field<uint64_t>(p,0x1a4)=field<uint64_t>(info,0x2c);
+    field<uint32_t>(p,0x1ac)=key;
+    field<uint64_t>(p,0x1b0)=field<uint64_t>(info,0x48);
+    field<Vec>(p,0x1b8)=field<Vec>(info,0x50);
+    field<uint64_t>(p,0x1d0)=field<uint64_t>(info,0x78);
+    field<uint64_t>(p,0x198)=field<uint64_t>(info,0x48);
+    field<uint64_t>(p,0x20c)=field<uint64_t>(info,0x48);
+    return clone(state,&position,0,p,false);
+}
 std::array<uint64_t,3> flight_stats() { return {repaired_counts[0].load(),repaired_counts[1].load(),repaired_counts[2].load()}; }
 void remove_facility(void* f) { std::scoped_lock lock(mutex); facilities.erase(f); building_keys.erase(f); actor_classes.erase(f); }
-void reset() { std::scoped_lock lock(mutex); facilities.clear(); building_keys.clear(); actor_classes.clear(); }
+void reset() { std::scoped_lock lock(mutex); facilities.clear(); building_keys.clear(); actor_classes.clear(); remembered.clear(); }
 void set_save_root(std::filesystem::path root) { std::scoped_lock lock(mutex); save_root=std::move(root); }
 void shutdown() { if (active) { /* DLL mods are unloaded only after process shutdown. */ } }
 }

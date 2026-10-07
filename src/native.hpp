@@ -14,6 +14,9 @@ std::optional<Limits> limits_for_key(uint32_t key);
 struct Probe { Vec origin; bool vanilla, modified; std::optional<Flight> flight; };
 Probe probe(void* facility, Vec relative);
 Vec catch_point(void* receiver);
+// Development-only integration probes, called on the game thread.
+bool deliver_probe(void* facility, void* receiver, void* save_subsystem, void* visuals, uint64_t item);
+bool clone_probe(void* subsystem, void* state, uint32_t key, Vec position);
 std::array<uint64_t,3> flight_stats();
 void set_save_root(std::filesystem::path root);
 void remove_facility(void* facility);
