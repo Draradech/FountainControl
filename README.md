@@ -9,6 +9,7 @@ hanging fountains and other launchers are unaffected.
 
 ## What it does
 
+![Fountain UI showing the two new sliders: drop limit and horizontal limit](docs/images/fountain-settings.png)
 - **Drop limit:** choose how far below the fountain it can deliver, from
   **0 to 10 m** in **0.1 m** steps.
 - **Horizontal limit:** choose **0 to 5 m** in **0.1 m** steps, or **Default**
@@ -18,9 +19,8 @@ hanging fountains and other launchers are unaffected.
   into the normally unreachable region near the fountain's centre.
 - **Range previews:** smaller horizontal limits shrink the existing range
   ring. Copy, move and blueprint ghosts show each fountain's configured ring.
-- **Copy and share settings:** moving preserves limits, copying duplicates
-  them, and saved blueprint PNGs carry them when shared, including through
-  Workshop. No extra blueprint file is needed.
+- **Copy, move and blueprint:** moving preserves limits, copying duplicates
+  them, and saved blueprints carry them.
 
 New fountains use **10 m drop** and **Default horizontal range**. Distances are
 measured from the fountain's emission point to the receiver's catch point.
@@ -32,7 +32,7 @@ visible ring; the ring does not describe the entire three-dimensional range.
 The original fountain has an unreachable region around its vertical axis,
 which becomes wider for receivers farther above or below the emission point.
 FountainControl fills that region while retaining the original outer reach
-and maximum drop. Your two sliders can restrict that range further.
+and maximum drop. The two limit sliders can restrict that range further.
 
 ![Vertical cross-sections of the original fountain range with its central exclusion, and FountainControl's corrected range with the centre filled.](docs/images/fountain-range.png)
 
@@ -60,6 +60,16 @@ Once UE4SS is installed:
    The resulting folder should contain `dlls/main.dll`, `Scripts/`,
    `config.ini` and `enabled.txt`, directly inside `ue4ss/Mods/FountainControl/`.
 3. Launch the game, aim at an upright fountain and press **E**.
+
+## Updating and uninstalling
+
+To update, close the game and replace `ue4ss/Mods/FountainControl/` with the
+new version. Keep a copy of `config.ini` and restore it afterward if you have
+customized it. Your per-fountain settings stay in the world's save folder.
+
+To uninstall, close the game and remove `ue4ss/Mods/FountainControl/`.
+You can keep the FountainControl subfolders in your saves for a later
+reinstallation; the game ignores them and still loads normally.
 
 ## Configuration
 
@@ -99,11 +109,13 @@ across game sessions. A changed save checksum produces a warning in
 `FountainControl.log`. Fountains built or given a new ID while the mod was
 disabled use the defaults.
 
-Blueprint settings are stored **inside the PNG**. Share the game's exported
-PNG directly; image editors can remove its embedded data. Older blueprints
-without FountainControl settings use the defaults. The PNG was tested with
-the mod disabled, and the Workshop upload path was checked by inspection; an
-online Workshop upload/download round trip has not been tested.
+Blueprint settings are stored **inside the blueprint PNG file**. Share the
+game's exported PNG directly; image editors can remove its embedded data.
+Older blueprints without FountainControl settings use the default limits.
+Using a blueprint with embedded fountain limits without the mod works (uses
+default limits). Workshop sharing is expected to preserve the settings based
+on inspection of the upload path; an online upload/download round trip has
+not been tested.
 
 ## Compatibility and troubleshooting
 
@@ -121,6 +133,11 @@ it can operate on that build.
 For more detail, see the [validation notes](docs/validation.md),
 [build instructions](docs/build.md), [native implementation](docs/native.md)
 and [blueprint format](docs/blueprints.md).
+
+## License
+
+FountainControl is released under the [MIT License](LICENSE).
+Third-party notices are included in `LICENSES/` and in the bundled JSON library.
 
 ## AI usage disclosure
 

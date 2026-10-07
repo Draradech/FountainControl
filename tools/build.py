@@ -88,6 +88,7 @@ def main():
     shutil.copytree(ROOT / 'LICENSES', out.parent / 'LICENSES', dirs_exist_ok=True)
     shutil.copytree(ROOT / 'docs', out.parent / 'docs', dirs_exist_ok=True)
     shutil.copy2(ROOT / 'README.md', out.parent / 'README.md')
+    shutil.copy2(ROOT / 'LICENSE', out.parent / 'LICENSE')
     print(out / 'main.dll')
 
 
