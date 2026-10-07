@@ -7,17 +7,15 @@ return function(root)
         f:write(tostring(message), '\n'); f:close()
     end
     _G.FCDev = {log=log, root=root}
-    LoopAsync(250, function()
+    LoopInGameThreadWithDelay(250, function()
         local f = io.open(root .. '/commands.lua', 'r')
         if not f then return end
         local code = f:read('*a'); f:close()
         os.remove(root .. '/commands.lua')
-        ExecuteInGameThread(function()
-            local fn, error = load(code, '@FountainControl/commands.lua')
-            if not fn then log(error); return end
-            local ok, error = pcall(fn)
-            if not ok then log(error) end
-        end, EGameThreadMethod.EngineTick)
+        local fn, error = load(code, '@FountainControl/commands.lua')
+        if not fn then log(error); return end
+        local ok, error = pcall(fn)
+        if not ok then log(error) end
     end)
     log('Local development commands enabled')
 end

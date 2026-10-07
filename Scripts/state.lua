@@ -91,6 +91,6 @@ return function(root)
         for address in pairs(FC.actors) do if not seen[address] then FCRemoveFacility(address) end end
         FC.actors=seen
     end
-    LoopAsync(1000,function() ExecuteInGameThread(FC.scan,EGameThreadMethod.EngineTick) end)
+    LoopInGameThreadWithDelay(1000,FC.scan)
     return FC
 end

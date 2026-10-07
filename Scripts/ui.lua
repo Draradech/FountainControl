@@ -54,6 +54,6 @@ return function(FC)
         end
         for _,c in pairs(panels) do update(c) end
     end
-    LoopAsync(100,function() ExecuteInGameThread(tick,EGameThreadMethod.EngineTick) end)
+    LoopInGameThreadWithDelay(100,tick)
     FC.panels=panels
 end

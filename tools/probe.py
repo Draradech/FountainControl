@@ -18,7 +18,7 @@ if mail.exists():
 marker = uuid.uuid4().hex
 log = a.mod_dir / 'probe.log'
 offset = log.stat().st_size if log.exists() else 0
-wrapped = f'local ok,err=xpcall(function()\n{code}\nend,debug.traceback); if not ok then FCDev.log(err) end; FCDev.log("DONE:{marker}")\n'
+wrapped = f'local ok,err=xpcall(function()\n{code}\nend,debug.traceback); if not ok then FCDev.log("ERROR:{marker}"); FCDev.log(err) end; FCDev.log("DONE:{marker}")\n'
 tmp = mail.with_suffix('.tmp')
 tmp.write_text(wrapped)
 tmp.replace(mail)
@@ -30,6 +30,6 @@ while time.monotonic() < deadline:
             text = f.read().decode(errors='replace')
         if f'DONE:{marker}' in text:
             print(text.split(f'DONE:{marker}')[0].rstrip())
-            sys.exit(0)
+            sys.exit(1 if f'ERROR:{marker}' in text else 0)
     time.sleep(.1)
 sys.exit('No completion received; is the game running with development commands enabled?')
