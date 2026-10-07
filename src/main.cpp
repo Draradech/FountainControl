@@ -15,7 +15,7 @@ void write_log(const char* message) {
 }
 
 int native_info(const RC::LuaMadeSimple::Lua& lua) {
-    lua.set_string("FountainControl native bridge 0.1.0");
+    lua.set_string("FountainControl native bridge 0.1.1");
     lua.set_bool(remove_exclusion);
     lua.set_bool(fc::ready());
     return 3;
@@ -32,6 +32,12 @@ int native_set(const RC::LuaMadeSimple::Lua& lua) {
 int native_remove(const RC::LuaMadeSimple::Lua& lua) { fc::remove_facility(reinterpret_cast<void*>(lua.get_integer())); return 0; }
 int native_reset(const RC::LuaMadeSimple::Lua&) { fc::reset(); return 0; }
 int native_generation(const RC::LuaMadeSimple::Lua& lua) { lua.set_integer(fc::load_generation()); return 1; }
+int native_interaction(const RC::LuaMadeSimple::Lua& lua) {
+    auto component=reinterpret_cast<void*>(lua.get_integer());
+    auto actor=reinterpret_cast<void*>(lua.get_integer());
+    fc::set_interaction(component,actor); return 0;
+}
+int native_take_interaction(const RC::LuaMadeSimple::Lua& lua) { lua.set_integer(fc::take_interaction()); return 1; }
 int native_get(const RC::LuaMadeSimple::Lua& lua) {
     auto value=fc::limits_for_key(static_cast<uint32_t>(lua.get_integer()));
     lua.set_bool(value.has_value()); lua.set_number(value ? value->drop : 1000); lua.set_number(value ? value->horizontal : -1); return 3;
@@ -105,7 +111,7 @@ class FountainControl final : public RC::CppUserModBase {
 public:
     FountainControl() {
         ModName = L"FountainControl";
-        ModVersion = L"0.1.0";
+        ModVersion = L"0.1.1";
         ModDescription = L"Per-fountain range controls for Alchemy Factory";
         ModAuthors = L"draradech";
         HMODULE module;
@@ -134,6 +140,8 @@ public:
             state.register_function("FCRemoveFacility", native_remove);
             state.register_function("FCResetFacilities", native_reset);
             state.register_function("FCLoadGeneration", native_generation);
+            state.register_function("FCSetInteraction", native_interaction);
+            state.register_function("FCTakeInteraction", native_take_interaction);
             state.register_function("FCGetNativeLimits", native_get);
             state.register_function("FCProbeReach", native_probe);
             state.register_function("FCProbeCatch", native_catch);

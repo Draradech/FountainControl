@@ -21,6 +21,8 @@ std::array<uint64_t,3> flight_stats();
 void set_save_root(std::filesystem::path root);
 void remove_facility(void* facility);
 void reset();
+void set_interaction(void* component, void* actor);
+uintptr_t take_interaction();
 std::string fingerprint(const std::filesystem::path& path);
 void log(const std::string& message);
 }

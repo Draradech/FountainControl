@@ -19,6 +19,8 @@ std::mutex mutex;
 std::unordered_map<void*,Limits> facilities;
 std::unordered_map<void*,uint32_t> building_keys;
 std::unordered_map<void*,void*> actor_classes;
+std::unordered_map<void*,void*> interactions;
+std::atomic<uintptr_t> pending_interaction{};
 std::array<std::atomic<uint64_t>,3> repaired_counts{};
 struct CloneSource { Limits limits; void* actor_class; };
 // Cut/move can destroy the source before rebuilding it. Keep its settings for
@@ -43,6 +45,19 @@ using Launch = bool(*)(void*,void*,int);
 using Receive = void(*)(void*,int,void*,void*,const Vec*,double,void*,int);
 using Visual = void(*)(void*,void*,void*,void*,double,void*,int,bool);
 using Worker = void(*)(void*);
+Worker original_interaction;
+void interact(void* component) {
+    {
+        std::scoped_lock lock(mutex);
+        auto found=interactions.find(component);
+        // UActorComponent's owner guards against a recycled component address.
+        if (found!=interactions.end() && field<void*>(component,0xa8)==found->second) {
+            pending_interaction=reinterpret_cast<uintptr_t>(found->second);
+            return;
+        }
+    }
+    original_interaction(component);
+}
 Reach original_reach;
 Select original_select;
 Launch original_launch;
@@ -250,6 +265,7 @@ void initialize(bool remove) {
     }
     image=reinterpret_cast<uintptr_t>(GetModuleHandleW(nullptr));
     std::vector<Hook> hooks {
+        {0x144a24200,reinterpret_cast<void*>(&interact),reinterpret_cast<void**>(&original_interaction)},
         {0x144a1e1d0,reinterpret_cast<void*>(&reach),reinterpret_cast<void**>(&original_reach)},
         {0x144a19500,reinterpret_cast<void*>(&select),reinterpret_cast<void**>(&original_select)},
         {0x144a073d0,reinterpret_cast<void*>(&launch),reinterpret_cast<void**>(&original_launch)},
@@ -368,7 +384,13 @@ bool clone_probe(void* subsystem,void* state,uint32_t key,Vec position) {
 }
 std::array<uint64_t,3> flight_stats() { return {repaired_counts[0].load(),repaired_counts[1].load(),repaired_counts[2].load()}; }
 void remove_facility(void* f) { std::scoped_lock lock(mutex); facilities.erase(f); building_keys.erase(f); actor_classes.erase(f); }
-void reset() { std::scoped_lock lock(mutex); facilities.clear(); building_keys.clear(); actor_classes.clear(); remembered.clear(); }
+void reset() { std::scoped_lock lock(mutex); facilities.clear(); building_keys.clear(); actor_classes.clear(); remembered.clear(); interactions.clear(); pending_interaction=0; }
+void set_interaction(void* component,void* actor) {
+    if (!active) return;
+    std::scoped_lock lock(mutex);
+    if (actor) interactions[component]=actor; else interactions.erase(component);
+}
+uintptr_t take_interaction() { return pending_interaction.exchange(0); }
 void set_save_root(std::filesystem::path root) { std::scoped_lock lock(mutex); save_root=std::move(root); }
 void shutdown() { if (active) { /* DLL mods are unloaded only after process shutdown. */ } }
 }
