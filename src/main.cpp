@@ -15,7 +15,7 @@ void write_log(const char* message) {
 }
 
 int native_info(const RC::LuaMadeSimple::Lua& lua) {
-    lua.set_string("FountainControl native bridge 0.1.3");
+    lua.set_string("FountainControl native bridge 0.1.4");
     lua.set_bool(remove_exclusion);
     lua.set_bool(fc::ready());
     return 3;
@@ -105,6 +105,9 @@ int native_hash(const RC::LuaMadeSimple::Lua& lua) {
     auto result = fc::fingerprint(std::filesystem::path(std::u8string_view(reinterpret_cast<const char8_t*>(input.data()),input.size())));
     lua.set_string(result); return 1;
 }
+int native_log(const RC::LuaMadeSimple::Lua& lua) {
+    fc::log(std::string(lua.get_string())); return 0;
+}
 int native_save_root(const RC::LuaMadeSimple::Lua& lua) {
     auto input=lua.get_string();
     fc::set_save_root(std::filesystem::path(std::u8string_view(reinterpret_cast<const char8_t*>(input.data()),input.size())));
@@ -135,7 +138,7 @@ class FountainControl final : public RC::CppUserModBase {
 public:
     FountainControl() {
         ModName = L"FountainControl";
-        ModVersion = L"0.1.3";
+        ModVersion = L"0.1.4";
         ModDescription = L"Per-fountain range controls for Alchemy Factory";
         ModAuthors = L"draradech";
         HMODULE module;
@@ -177,6 +180,7 @@ public:
             state.register_function("FCProbeClone", native_clone);
             state.register_function("FCProbeBlueprintPlace", native_blueprint_place);
             state.register_function("FCFingerprint", native_hash);
+            state.register_function("FCLog", native_log);
             state.register_function("FCSetSaveRoot", native_save_root);
         };
         register_bridge(lua);

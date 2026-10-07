@@ -56,8 +56,16 @@ return function(root)
         local text=file:read(1048577); file:close()
         if #text>1048576 then print('[FountainControl] Companion too large; using defaults\n'); return end
         local ok,data=pcall(json.decode,text)
-        if not ok or type(data)~='table' or data.schema~=1 or data.fingerprint~=FCFingerprint(save) or type(data.fountains)~='table' then
-            print('[FountainControl] Missing, invalid or stale companion; using defaults\n'); return
+        if not ok or type(data)~='table' or data.schema~=1 or type(data.fingerprint)~='string' or type(data.fountains)~='table' then
+            print('[FountainControl] Invalid save companion; using defaults\n'); return
+        end
+        local fingerprint=FCFingerprint(save)
+        if fingerprint=='' or data.fingerprint~=fingerprint then
+            local reason=fingerprint=='' and 'Save checksum unavailable' or 'Save checksum mismatch'
+            local warning='[FountainControl] WARNING: '..reason..' for '..world..'/'..slot
+                ..'; restoring valid fountain settings by persistent SettleKey. Settings may be stale.'
+            FCLog(warning)
+            print(warning..'\n')
         end
         for id,value in pairs(data.fountains) do
             if tostring(id):match('^%d+$') and tonumber(id)<=0xffffffff and type(value)=='table' and type(value.drop)=='number' and value.drop>=0 and value.drop<=1000 and value.drop%50==0 then
@@ -66,7 +74,7 @@ return function(root)
                 if type(h)=='number' and (h==-1 or h>=0 and h<=500 and h%50==0) then FC.settings[tostring(id)]={drop=value.drop,horizontal=h} end
             end
         end
-        print('[FountainControl] Loaded matching save companion\n')
+        print('[FountainControl] Loaded save companion\n')
     end
     function FC.scan()
         local subsystem=FindFirstOf('GameSaveLoadSubsystem')
