@@ -51,7 +51,7 @@ return function(FC)
             box:AddChildToVerticalBox(slider):SetPadding({Left=0,Top=0,Right=0,Bottom=16})
             return {label=label,slider=slider}
         end
-        controls.drop=row('Drop',20);controls.horizontal=row('Horizontal',11)
+        controls.drop=row('Drop',100);controls.horizontal=row('Horizontal',51)
         return controls
     end
     local function update(c)
@@ -66,16 +66,16 @@ return function(FC)
         local value=FC.get(actor)
         if c.actor~=actor:GetAddress() then
             c.actor=actor:GetAddress()
-            c.drop.slider:SetValue(value.drop/50)
-            c.horizontal.slider:SetValue(value.horizontal<0 and 11 or value.horizontal/50)
+            c.drop.slider:SetValue(value.drop/10)
+            c.horizontal.slider:SetValue(value.horizontal<0 and 51 or value.horizontal/10)
         else
-            local drop=math.floor(c.drop.slider:GetValue()+.5)*50
+            local drop=math.floor(c.drop.slider:GetValue()+.5)*10
             local position=math.floor(c.horizontal.slider:GetValue()+.5)
-            local horizontal=position==11 and -1 or position*50
+            local horizontal=position==51 and -1 or position*10
             if drop~=value.drop or horizontal~=value.horizontal then FC.set(actor,drop,horizontal);value=FC.get(actor) end
         end
-        c.drop.slider:SetValue(value.drop/50)
-        c.horizontal.slider:SetValue(value.horizontal<0 and 11 or value.horizontal/50)
+        c.drop.slider:SetValue(value.drop/10)
+        c.horizontal.slider:SetValue(value.horizontal<0 and 51 or value.horizontal/10)
         c.title:SetText(c.panel.Txt_Title:GetText())
         c.drop.label:SetText(FText(string.format('Drop limit: %.1f m',value.drop/100)))
         c.horizontal.label:SetText(FText(value.horizontal<0 and 'Horizontal limit: Default' or string.format('Horizontal limit: %.1f m',value.horizontal/100)))

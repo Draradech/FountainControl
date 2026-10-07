@@ -10,8 +10,8 @@ hanging fountains and other launchers are unaffected.
 ## What it does
 
 - **Drop limit:** choose how far below the fountain it can deliver, from
-  **0 to 10 m** in **0.5 m** steps.
-- **Horizontal limit:** choose **0 to 5 m** in **0.5 m** steps, or **Default**
+  **0 to 10 m** in **0.1 m** steps.
+- **Horizontal limit:** choose **0 to 5 m** in **0.1 m** steps, or **Default**
   to keep the game's full horizontal reach. Use this to keep a fountain
   feeding its own production chain.
 - **Remove the central exclusion:** enabled by default, allowing delivery
@@ -98,7 +98,7 @@ online Workshop upload/download round trip has not been tested.
 
 ## Compatibility and troubleshooting
 
-Version **0.1.5** was tested with **Alchemy Factory 1.0.4963 / Steam build
+Version **0.1.6** was tested with **Alchemy Factory 1.0.4963 / Steam build
 25321648**, Unreal Engine 5.7.4 and **UE4SS v3.0.1-1161-g6eb3d9bc**, including
 Proton Experimental.
 

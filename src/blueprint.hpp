@@ -16,9 +16,9 @@ struct Metadata {
     std::map<int, Limits> fountains;
 };
 inline bool valid(Limits v) {
-    return std::isfinite(v.drop) && v.drop>=0 && v.drop<=1000 && std::fmod(v.drop,50)==0
+    return std::isfinite(v.drop) && v.drop>=0 && v.drop<=1000 && std::fmod(v.drop,10)==0
         && (v.horizontal==-1 || (std::isfinite(v.horizontal) && v.horizontal>=0
-            && v.horizontal<=500 && std::fmod(v.horizontal,50)==0));
+            && v.horizontal<=500 && std::fmod(v.horizontal,10)==0));
 }
 inline std::string encode(const Metadata& data, const std::string& hash) {
     std::ostringstream out;

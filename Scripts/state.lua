@@ -19,9 +19,9 @@ return function(root)
     end
     function FC.set(actor,drop,horizontal)
         if not FC.is_fountain(actor) then return end
-        drop=math.max(0,math.min(1000,math.floor(drop/50+.5)*50))
+        drop=math.max(0,math.min(1000,math.floor(drop/10+.5)*10))
         if horizontal<0 or horizontal>500 then horizontal=-1
-        else horizontal=math.max(0,math.floor(horizontal/50+.5)*50) end
+        else horizontal=math.max(0,math.floor(horizontal/10+.5)*10) end
         FC.settings[key(actor)]={drop=drop,horizontal=horizontal}
         FCSetFacility(actor.SmartCannonFacility:GetAddress(),drop,horizontal,actor:GetSettleKey(),actor:GetAddress())
         FC.indicator(actor)
@@ -68,10 +68,10 @@ return function(root)
             print(warning..'\n')
         end
         for id,value in pairs(data.fountains) do
-            if tostring(id):match('^%d+$') and tonumber(id)<=0xffffffff and type(value)=='table' and type(value.drop)=='number' and value.drop>=0 and value.drop<=1000 and value.drop%50==0 then
+            if tostring(id):match('^%d+$') and tonumber(id)<=0xffffffff and type(value)=='table' and type(value.drop)=='number' and value.drop>=0 and value.drop<=1000 and value.drop%10==0 then
                 local h=value.horizontal
                 if h==nil then h=-1 end
-                if type(h)=='number' and (h==-1 or h>=0 and h<=500 and h%50==0) then FC.settings[tostring(id)]={drop=value.drop,horizontal=h} end
+                if type(h)=='number' and (h==-1 or h>=0 and h<=500 and h%10==0) then FC.settings[tostring(id)]={drop=value.drop,horizontal=h} end
             end
         end
         print('[FountainControl] Loaded save companion\n')

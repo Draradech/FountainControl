@@ -7,7 +7,7 @@ import zipfile
 root=Path(__file__).resolve().parents[1]
 stage=root/'dist/FountainControl'
 assert (stage/'dlls/main.dll').is_file(),'Run tools/build.py first'
-archive=root/'dist/FountainControl-0.1.5.zip'
+archive=root/'dist/FountainControl-0.1.6.zip'
 with zipfile.ZipFile(archive,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=9) as output:
     for path in sorted(stage.rglob('*')):
         if path.is_file():

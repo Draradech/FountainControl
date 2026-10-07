@@ -3,10 +3,11 @@
 int main() {
     using namespace fc::blueprint;
     std::string hash(64,'a');
-    Metadata data{4,{{0,{350,150}},{2,{0,0}},{3,{1000,-1}}}};
+    Metadata data{4,{{0,{350,150}},{1,{340,160}},{2,{0,0}},{3,{1000,-1}}}};
     auto text=encode(data,hash);
     auto decoded=decode(text,hash,4);
-    assert(decoded && decoded->fountains.size()==3 && decoded->fountains[0].drop==350);
+    assert(decoded && decoded->fountains.size()==4 && decoded->fountains[0].drop==350);
+    assert(decoded->fountains[1].drop==340 && decoded->fountains[1].horizontal==160);
     assert(decoded->fountains[2].horizontal==0 && decoded->fountains[3].horizontal==-1);
     assert(!decode(text,std::string(64,'b'),4));
     assert(!decode(text,hash,5));

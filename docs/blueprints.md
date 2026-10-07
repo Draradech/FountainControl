@@ -23,7 +23,7 @@ hashing itself. No object pointers or destination-world IDs are serialized.
 
 Missing chunks, duplicate chunks, incorrect CRCs, stale fingerprints and
 malformed or unsupported payloads are ignored. Metadata is limited to 1 MiB;
-loaded PNGs to 128 MiB. Counts, indices, uniqueness, numeric bounds and 50 cm
+loaded PNGs to 128 MiB. Counts, indices, uniqueness, numeric bounds and 10 cm
 steps are validated before applying anything. Image editors that strip unknown
 chunks or change the PNG invalidate the settings, and may also remove the
 game's native building data; share the game's exported file directly.
