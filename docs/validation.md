@@ -1,4 +1,4 @@
-# Validation through 0.1.5
+# Validation through 0.1.6
 
 Checks through 0.1.4 were validated on 2026-10-07 with Steam build 25321648, Alchemy Factory 1.0.4963,
 UE 5.7.4, UE4SS v3.0.1-946-g265115c0 and Proton Experimental. Integration
@@ -175,3 +175,31 @@ filename is retained above to identify the tested download precisely.
 This check covers clean installation and normal fountain interaction on the
 new loader. The full geometry, delivery and blueprint matrices above were
 performed on the earlier UE4SS build.
+
+
+## 0.1 m slider increments in 0.1.6
+
+Validated on 2026-10-07 with the same stock UE4SS 1161 installation, using
+a fresh disposable `FountainControl_Steps_Dev` copy of the development world.
+Temporary development commands were enabled for inspection and then disabled.
+
+- Opened the fountain with E. Mouse input selected adjacent 0.1 m positions:
+  3.5 to 3.4 m drop and 1.5 to 1.6 m horizontal. Both labels and stored
+  limits reflected the finer values.
+- Setting the actual sliders to their upper positions produced 10.0 m drop,
+  5.0 m horizontal and then Default at the final horizontal position.
+- Saved through the normal game interface. Independent Python checks found
+  340/160 cm in the companion and a matching native-save SHA256.
+- Closed and restarted the game, loaded the same slot, and opened the fountain
+  again with E. The interface restored 3.4/1.6 m and the measured ring radius
+  was 160.000 cm. All 13 original-world save hashes stayed unchanged.
+- Host Lua tests cover fine values, old 0.5 m values, checksum recovery,
+  rounding, bounds, Default and native clone adoption. Existing ghost-preview
+  lifecycle checks also pass.
+- Native blueprint codec tests pass with address/undefined-behavior sanitizers.
+  The round-trip fixture includes both 350/150 and 340/160 cm settings;
+  malformed values, CRC validation and unchanged native PNG payload checks
+  still pass. The blueprint import/Workshop matrices above were not repeated.
+
+The save companion and PNG metadata schemas remain at version 1. Existing
+0.5 m settings remain valid; trajectory and range geometry are unchanged.

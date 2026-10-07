@@ -50,14 +50,14 @@ folder there. With the tested build **v3.0.1-1161-g6eb3d9bc**, the default
 settings work: the engine version is detected automatically, and no custom
 signatures or UE4SS setting changes are needed.
 The [official UE4SS installation guide](https://docs.ue4ss.com/dev/installation-guide.html)
-explains the folder layout. On Proton, add
+explains the folder layout. On Linux / Proton, add
 `WINEDLLOVERRIDES="dwmapi=n,b" %command%` to the game's Steam launch options.
 
 Once UE4SS is installed:
 
 1. Close the game and extract the FountainControl zip.
 2. Copy its **FountainControl** folder into `ue4ss/Mods/`.
-   The resulting folder should contain `dlls/main.dll`, `Scripts/` and
+   The resulting folder should contain `dlls/main.dll`, `Scripts/`,
    `config.ini` and `enabled.txt`, directly inside `ue4ss/Mods/FountainControl/`.
 3. Launch the game, aim at an upright fountain and press **E**.
 
