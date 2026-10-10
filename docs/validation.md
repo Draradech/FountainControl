@@ -237,3 +237,30 @@ UE4SS 1161 installation, using a fresh `FountainControl_Cloud_Dev` world:
 This check verifies the new writer, replacement, reader and Steam upload.
 A second-machine download of this newly generated companion was not repeated;
 draradech's subfolder synchronization check is recorded above.
+
+## Standalone maintainer handoff on 2026-10-10
+
+This change adds documentation/evidence/research tools, and removes historical
+world-ID assumptions from the live test drivers. Mod runtime code, version,
+geometry and persistence format are unchanged. No game launch, player save or
+installed mod/configuration change was needed for this handoff.
+
+- Host state/ghost suites passed; the native PNG codec passed with address and
+  undefined-behavior sanitizers. The two included real PNG exports passed CRC,
+  canonical fingerprint, embedded settings and unchanged-native-tail checks.
+- The repo's own Python environment reproduced both historical 10,000-point
+  upright/hanging range JSON reports exactly and recreated reference disassembly
+  from the fingerprint-matched executable. The 10,080-point native/mod solver
+  comparison again passed, including 250 repaired trajectories.
+- Python tools compiled and all ten shipped/support Lua scripts passed syntax
+  compilation. Relative Markdown links resolved.
+- A temporary copy containing only this repo's tracked/new files, without parent
+  research/dumps or the original ignored runtime fixtures, passed the host Lua,
+  real PNG fixture and reference-disassembly tools. Dependencies were supplied
+  by this repo's own environment, not the parent research environment.
+
+The generalized live delivery/blueprint drivers and the new read-only inventory/
+template probes were syntax-checked, not rerun in a running game in this change.
+Their fresh-world setup and coverage limits are documented in testing.md. The
+previous recorded integration results remain historical results on their listed
+mod/loader versions, rather than claims of a new full integration pass.

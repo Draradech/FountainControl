@@ -132,7 +132,8 @@ it can operate on that build.
 
 For more detail, see the [validation notes](docs/validation.md),
 [build instructions](docs/build.md), [native implementation](docs/native.md)
-and [blueprint format](docs/blueprints.md).
+and [blueprint format](docs/blueprints.md). Contributors and future maintainers
+can start with the [maintainer handoff](docs/maintaining.md).
 
 ## License
 

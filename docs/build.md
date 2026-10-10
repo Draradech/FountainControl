@@ -39,6 +39,7 @@ recursively pulls in the private Unreal sources through the debug GUI.
 python3 tools/test_state.py
 clang++ -std=c++20 -O2 -fsanitize=address,undefined -I src tests/blueprint.cpp -o /tmp/fountain-blueprint-test
 /tmp/fountain-blueprint-test
+python3 tools/inspect_blueprint.py --check-fixtures
 .tools/venv/bin/pip install -r tools/test-requirements.txt
 .tools/venv/bin/python tools/test_trajectory.py
 ```
@@ -60,10 +61,16 @@ Development commands are disabled by default. To enable them temporarily,
 add `[Development]` / `EnableCommands = 1` to the installed `config.ini` and
 restart. `tools/probe.py` sends Lua through an atomic file mailbox; the mod
 executes it on the game thread and returns nonzero for Lua failures.
-`tools/game_tests/delivery.lua` requires the disposable `FountainControl_Dev`
-world and its research fountain. It injects items into a real hopper worker
-and checks arrival, inventory counts and boundaries. Completion appears later
+`tools/game_tests/delivery.lua` requires a disposable `FountainControl_*Dev`
+world and an explicitly selected `FCDeliveryFountainKey` from that world.
+It injects items into a real hopper worker and checks arrival, inventory counts and boundaries. Completion appears later
 in `probe.log` as `DELIVERY COMPLETE` or `DELIVERY FAILED`.
 
 The INI enables arbitrary local Lua execution and development native calls;
 leave it disabled for normal play. There is no network listener.
+
+See [maintaining.md](maintaining.md) for the complete handoff,
+[testing.md](testing.md) for creating fresh live fixtures, and
+[porting.md](porting.md) for updating native integration. Optional analysis and
+plot dependencies are in `tools/analysis-requirements.txt` and
+`tools/plot-requirements.txt`; the parent research environment is not required.
