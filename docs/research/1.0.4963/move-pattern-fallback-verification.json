@@ -1,0 +1,44 @@
+{
+  "indicator_fields": {
+    "MinVerticalSpeed": 0,
+    "MaxVerticalSpeed": 700,
+    "HorizontalSpeed": 500
+  },
+  "cases": [
+    {
+      "pattern": -1,
+      "radius": 0.0,
+      "accepts_target_5000_0_300": true
+    },
+    {
+      "pattern": 0,
+      "radius": 0.0,
+      "accepts_target_5000_0_300": true
+    },
+    {
+      "pattern": 1,
+      "radius": 714.2857142857143,
+      "accepts_target_5000_0_300": false
+    },
+    {
+      "pattern": 2,
+      "radius": 510.2040816326532,
+      "accepts_target_5000_0_300": false
+    },
+    {
+      "pattern": 3,
+      "radius": 2280.3687684620095,
+      "accepts_target_5000_0_300": false
+    },
+    {
+      "pattern": 4,
+      "radius": 0.0,
+      "accepts_target_5000_0_300": true
+    },
+    {
+      "pattern": 99,
+      "radius": 0.0,
+      "accepts_target_5000_0_300": true
+    }
+  ]
+}

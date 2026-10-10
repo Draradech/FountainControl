@@ -1,12 +1,18 @@
--- Run through tools/probe.py in the disposable FountainControl_Dev world.
+-- Run through tools/probe.py in a disposable FountainControl_*Dev world.
+-- Set FCDeliveryFountainKey to its settled fountain's key. Optionally select a
+-- particular receiver with FCDeliveryReceiverName (GetFullName()).
 local s=FindFirstOf('GameSaveLoadSubsystem')
-assert(s.WorldTitleName:ToString()=='FountainControl_Dev','Test world required')
+assert(s.WorldTitleName:ToString():match('^FountainControl_.*Dev$'),'Test world required')
 local FC=FountainControl
+FC.scan()
+local key=assert(FCDeliveryFountainKey,'Set FCDeliveryFountainKey from a fresh world inventory')
 local actor
-for _,a in pairs(FC.actors) do if a:GetSettleKey()==28916 then actor=a end end
+for _,a in pairs(FC.actors) do if a:GetSettleKey()==key then actor=a end end
 assert(actor,'Test fountain missing')
 local receiver
-for _,c in ipairs(FindAllOf('HopperCatcherComponent') or {}) do if c:IsValid() then receiver=c; break end end
+for _,c in ipairs(FindAllOf('HopperCatcherComponent') or {}) do
+ if c:IsValid() and (not FCDeliveryReceiverName or c:GetFullName()==FCDeliveryReceiverName) then receiver=c; break end
+end
 assert(receiver)
 local owner=receiver:GetOwner()
 local original=owner:K2_GetActorLocation()

@@ -1,0 +1,63 @@
+{
+   "Meta": {
+      "Address": "000000008AB82E00",
+      "ClassPrivate": {
+         "Address": "00007FFFDE192388",
+         "Name": "ThrowIndicatorComponent"
+      },
+      "NamePrivate": {
+         "Components": {
+            "ComparisonIndex": 1462393,
+            "DisplayIndex": null,
+            "Number": 0
+         },
+         "String": "ThrowIndicator"
+      },
+      "ObjectFlags": {
+         "Flags": [
+            "RF_LoadCompleted",
+            "RF_AllFlags"
+         ],
+         "Raw": 2097152
+      },
+      "Path": "/Game/Maps/Loading.Loading:PersistentLevel.BP_SmartCannon_C_2147478748.ThrowIndicator",
+      "PlayerControlled": false,
+      "Size": {
+         "Exclusive": {
+            "ActorComponent": 152,
+            "BuildingComponentBase": 8,
+            "Object": 40,
+            "ThrowIndicatorComponent": 48
+         },
+         "Inclusive": {
+            "ActorComponent": 192,
+            "BuildingComponentBase": 200,
+            "Object": 40,
+            "ThrowIndicatorComponent": 248
+         },
+         "Total": 248
+      }
+   },
+   "Values": {
+      "AssetUserData": "",
+      "ComponentTags": "",
+      "CreationMethod": "SimpleConstructionScript",
+      "HorizontalSpeed": "500.000000",
+      "MaxVerticalSpeed": "700.000000",
+      "MinVerticalSpeed": "0.000000",
+      "MovePattern": "2",
+      "OnComponentActivated": "()",
+      "OnComponentDeactivated": "()",
+      "PrimaryComponentTick": "(TickGroup=TG_DuringPhysics,EndTickGroup=TG_PrePhysics,bTickEvenWhenPaused=False,bCanEverTick=False,bStartWithTickEnabled=True,bAllowTickOnDedicatedServer=True,TickInterval=0.000000)",
+      "ShowIndicatorEvent": "(/Game/Maps/Loading.Loading:PersistentLevel.BP_SmartCannon_C_2147478748.ShowIndicator)",
+      "UCSSerializationIndex": "0",
+      "bAutoActivate": "False",
+      "bCanEverAffectNavigation": "False",
+      "bEditableWhenInherited": "True",
+      "bIsActive": "False",
+      "bIsEditorOnly": "False",
+      "bNetAddressable": "True",
+      "bReplicateUsingRegisteredSubObjectList": "False",
+      "bReplicates": "False"
+   }
+}

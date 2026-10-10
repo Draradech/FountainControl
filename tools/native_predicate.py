@@ -5,6 +5,7 @@ The distance arithmetic, pattern dispatch, speed limits and arrival test are the
 original x64 instructions from the installed executable.
 """
 import hashlib
+import os
 import struct
 from pathlib import Path
 
@@ -15,7 +16,8 @@ import pefile
 
 class Image:
     def __init__(self):
-        path=Path.home()/'.local/share/Steam/steamapps/common/Alchemy Factory/AlchemyFactory/Binaries/Win64/AlchemyFactory-Win64-Shipping.exe'
+        default_path = Path.home() / '.local/share/Steam/steamapps/common/Alchemy Factory/AlchemyFactory/Binaries/Win64/AlchemyFactory-Win64-Shipping.exe'
+        path = Path(os.environ.get('FOUNTAINCONTROL_GAME_EXE', default_path))
         if hashlib.sha256(path.read_bytes()).hexdigest()!='66618d029654d125723c95e8e62919f267973ad881e24abff3b80e0b355a52f8':
             raise RuntimeError('Native comparison requires the supported 1.0.4963 executable')
         self.pe=pefile.PE(str(path),fast_load=True)

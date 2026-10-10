@@ -1,0 +1,82 @@
+{
+   "Meta": {
+      "Address": "000000008BC943F0",
+      "ClassPrivate": {
+         "Address": "00007FFFDE18FCF0",
+         "Name": "SmartCannonFacilityComponent"
+      },
+      "NamePrivate": {
+         "Components": {
+            "ComparisonIndex": 1462382,
+            "DisplayIndex": null,
+            "Number": 0
+         },
+         "String": "SmartCannonFacility"
+      },
+      "ObjectFlags": {
+         "Flags": [
+            "RF_LoadCompleted",
+            "RF_AllFlags"
+         ],
+         "Raw": 2097152
+      },
+      "Path": "/Game/Maps/Loading.Loading:PersistentLevel.BP_SmartCannon_C_2147478748.SmartCannonFacility",
+      "PlayerControlled": false,
+      "Size": {
+         "Exclusive": {
+            "ActorComponent": 152,
+            "BuildingComponentBase": 8,
+            "BuildingFacilityComponent": 368,
+            "Object": 40,
+            "SmartCannonFacilityComponent": 192
+         },
+         "Inclusive": {
+            "ActorComponent": 192,
+            "BuildingComponentBase": 200,
+            "BuildingFacilityComponent": 568,
+            "Object": 40,
+            "SmartCannonFacilityComponent": 760
+         },
+         "Total": 760
+      }
+   },
+   "Values": {
+      "ActiveChangeEvent": "()",
+      "AssetUserData": "",
+      "AudioComponent": "None",
+      "BeltEntities": "(Num=4,InOuts[0]=(EntityIndex=(Type=Belt,Version=8431,EntityIndex=18929)),InOuts[1]=(EntityIndex=(Type=Belt,Version=8432,EntityIndex=18930)),InOuts[2]=(EntityIndex=(Type=Belt,Version=8433,EntityIndex=18928)),InOuts[3]=(EntityIndex=(Type=Belt,Version=8434,EntityIndex=18927)),InOuts[4]=(EntityIndex=(Type=None,Version=0,EntityIndex=-1)),InOuts[5]=(EntityIndex=(Type=None,Version=0,EntityIndex=-1)),InOuts[6]=(EntityIndex=(Type=None,Version=0,EntityIndex=-1)),InOuts[7]=(EntityIndex=(Type=None,Version=0,EntityIndex=-1)),InOuts[8]=(EntityIndex=(Type=None,Version=0,EntityIndex=-1)),InOuts[9]=(EntityIndex=(Type=None,Version=0,EntityIndex=-1)),InOuts[10]=(EntityIndex=(Type=None,Version=0,EntityIndex=-1)),InOuts[11]=(EntityIndex=(Type=None,Version=0,EntityIndex=-1)))",
+      "ComponentTags": "",
+      "ContainerColorChange": "()",
+      "CreationMethod": "SimpleConstructionScript",
+      "CustomColor": "(B=255,G=255,R=255,A=0)",
+      "DrawBackEvent": "()",
+      "EmitDeltaTime": "0.250000",
+      "EmitPosition": "(X=0.000000,Y=0.000000,Z=60.000000)",
+      "FacilityContainer": "(OverrideMaximumStack=0,Slots=)",
+      "HeatComps": "",
+      "HorizontalSpeed": "500.000000",
+      "InventoryUpdateEvent": "()",
+      "IsWidgetActive": "False",
+      "NearbyTargets": "(\"RawMaterialCatcher\",\"RawMaterialCatcher\",\"RawMaterialCatcher\",\"RawMaterialCatcher\",\"RawMaterialCatcher\",\"RawMaterialCatcher\",\"RawMaterialCatcher\",\"RawMaterialCatcher\",\"RawMaterialCatcher\",\"RawMaterialCatcher\",\"RawMaterialCatcher\",\"RawMaterialCatcher\",\"RawMaterialCatcher\",\"RawMaterialCatcher\",\"RawMaterialCatcher\",\"RawMaterialCatcher\",\"RawMaterialCatcher\",\"RawMaterialCatcher\",\"RawMaterialCatcher\",\"RawMaterialCatcher\",\"RawMaterialCatcher\",\"RawMaterialCatcher\",\"RawMaterialCatcher\",\"RawMaterialCatcher\",\"RawMaterialCatcher\",\"RawMaterialCatcher\",\"RawMaterialCatcher\",\"RawMaterialCatcher\",\"RawMaterialCatcher\",\"RawMaterialCatcher\",\"RawMaterialCatcher\",\"RawMaterialCatcher\",\"RawMaterialCatcher\",\"RawMaterialCatcher\",\"RawMaterialCatcher\",\"RawMaterialCatcher\",\"RawMaterialCatcher\",\"RawMaterialCatcher\",\"CauldronCatcher\",\"CauldronCatcher\",\"CauldronCatcher\",\"CauldronCatcher\",\"CauldronCatcher\",\"CauldronCatcher\",\"CauldronCatcher\",\"CauldronCatcher\",\"CauldronCatcher\",\"CauldronCatcher\",\"CauldronCatcher\",\"CauldronCatcher\",\"CauldronCatcher\",\"CauldronCatcher\",\"CauldronCatcher\",\"CauldronCatcher\")",
+      "OnComponentActivated": "()",
+      "OnComponentDeactivated": "()",
+      "PhantomStaticMesh": "(Facility=\"SmartCannonFacility\",RotatorAnimations=)",
+      "PipeEntities": "(Num=0,InOuts[0]=(EntityIndex=(Type=None,Version=0,EntityIndex=-1)),InOuts[1]=(EntityIndex=(Type=None,Version=0,EntityIndex=-1)),InOuts[2]=(EntityIndex=(Type=None,Version=0,EntityIndex=-1)),InOuts[3]=(EntityIndex=(Type=None,Version=0,EntityIndex=-1)),InOuts[4]=(EntityIndex=(Type=None,Version=0,EntityIndex=-1)),InOuts[5]=(EntityIndex=(Type=None,Version=0,EntityIndex=-1)),InOuts[6]=(EntityIndex=(Type=None,Version=0,EntityIndex=-1)),InOuts[7]=(EntityIndex=(Type=None,Version=0,EntityIndex=-1)),InOuts[8]=(EntityIndex=(Type=None,Version=0,EntityIndex=-1)),InOuts[9]=(EntityIndex=(Type=None,Version=0,EntityIndex=-1)),InOuts[10]=(EntityIndex=(Type=None,Version=0,EntityIndex=-1)),InOuts[11]=(EntityIndex=(Type=None,Version=0,EntityIndex=-1)))",
+      "PrimaryComponentTick": "(TickGroup=TG_DuringPhysics,EndTickGroup=TG_PrePhysics,bTickEvenWhenPaused=False,bCanEverTick=False,bStartWithTickEnabled=True,bAllowTickOnDedicatedServer=True,TickInterval=0.000000)",
+      "SmartCannonMaxDistance": "500.000000",
+      "SmartCannonSpeed": "2.000000",
+      "TargetSearchStates": "((\"Chamomile\", (NextTargetKey=68512)),(\"Flax\", (NextTargetKey=68512)),(\"Sage\", (NextTargetKey=68512)),(\"Lavender\", (NextTargetKey=68513)))",
+      "UCSSerializationIndex": "0",
+      "UseDrop": "False",
+      "bAutoActivate": "False",
+      "bCanEverAffectNavigation": "False",
+      "bEditableWhenInherited": "True",
+      "bFacilityActive": "False",
+      "bIsActive": "False",
+      "bIsEditorOnly": "False",
+      "bNetAddressable": "True",
+      "bPlayActiveSound": "False",
+      "bReplicateUsingRegisteredSubObjectList": "False",
+      "bReplicates": "False"
+   }
+}

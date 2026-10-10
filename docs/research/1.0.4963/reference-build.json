@@ -1,0 +1,247 @@
+{
+  "purpose": "Historical reference only; not consumed by the mod. Re-discover and verify every address, ABI and offset before supporting another executable.",
+  "game_version": "1.0.4963",
+  "steam_app_id": 3669570,
+  "steam_build_id": 25321648,
+  "engine_version": "5.7.4",
+  "image_base": "0x140000000",
+  "executable_sha256": "66618d029654d125723c95e8e62919f267973ad881e24abff3b80e0b355a52f8",
+  "mod_version": "0.1.7",
+  "ue4ss_archive": "UE4SS_v3.0.1-1161-g6eb3d9bc.zip",
+  "ue4ss_archive_sha256": "938dc9901e6452cad3120280681c93a00ae12df2b259668815a150e221a35563",
+  "ue4ss_archive_dll_banner": "v3.0.1 Beta #0 - Git SHA #5418fa4e",
+  "ue4ss_sdk_commit": "6eb3d9bc3346ba01f7191612b5812e0e47a3bbe1",
+  "hooks": {
+    "interact": "0x144a24200",
+    "reach": "0x144a1e1d0",
+    "select": "0x144a19500",
+    "launch": "0x144a073d0",
+    "visual": "0x1449fae30",
+    "hopper": "0x144a0d760",
+    "receive<0>": "0x144a14120",
+    "receive<1>": "0x144a14380",
+    "receive<2>": "0x144a145f0",
+    "receive<3>": "0x144a14790",
+    "receive<4>": "0x144a149c0",
+    "save_begin": "0x144acd490",
+    "save_complete": "0x144aaae90",
+    "reload": "0x144acb850",
+    "clone": "0x144ac84c0",
+    "build": "0x144ad34d0",
+    "read_blueprint": "0x144aca1e0",
+    "enter_blueprint_index": "0x144ab6d90",
+    "enter_blueprint_path": "0x144ab7180",
+    "clear_clone": "0x144ab3ce0",
+    "pack_blueprint": "0x144ac6000",
+    "save_array": "0x1412efd40"
+  },
+  "helpers": {
+    "world_emitter": "0x144a1c6c0",
+    "weak_state_resolve": "0x141540ca0",
+    "native_entity_resolve": "0x144a5b040",
+    "get_product_config": "0x1449ec190",
+    "player_controller_class": "0x1449bcb80",
+    "typed_outer": "0x1415272f0",
+    "spatial_lookup_key": "0x144a62a60",
+    "oracle_fname_stub": "0x141330710"
+  },
+  "research_anchors": {
+    "facility_constructor": "0x1449a7810",
+    "assign_indicator": "0x144a158d0",
+    "check_speed": "0x144a0dcd0",
+    "refresh_targets": "0x144a27ee0",
+    "incremental_register_callsite": "0x144a1fd13",
+    "radius_getter": "0x144a1cc80",
+    "catch_delegation": "0x144a1d610",
+    "cauldron_throw_transform": "0x1449ebf80",
+    "visual_dispatch_callsite": "0x1449f6392",
+    "workshop_upload": "0x144b034c0",
+    "workshop_update": "0x144ae9880",
+    "workshop_path_join": "0x144ab4d30",
+    "native_save_property_gate": "0x144a8ecd4",
+    "native_load_property_gate": "0x144a8cea0",
+    "max_distance_ctor_assignment_callsite": "0x1449a790f",
+    "component_save_wrapper": "0x1449676b0",
+    "component_save_dispatch": "0x14497ec40",
+    "component_save_archive": "0x144a8eae0",
+    "component_save_properties": "0x144a8ebc0",
+    "component_load_wrapper": "0x144967690",
+    "component_load_dispatch": "0x1449f12f0",
+    "component_load_archive": "0x144a8cc20",
+    "component_load_properties": "0x144a8cd60"
+  },
+  "constants": {
+    "pattern3_half_gravity": "0x147ad3580",
+    "pattern2_half_gravity": "0x147ad3590"
+  },
+  "native_typedefs": {
+    "Emit": "Vec*(*)(void*,Vec*)",
+    "Catch": "Vec*(*)(void*,Vec*)",
+    "Reach": "bool(*)(void*,const Vec*)",
+    "Select": "void*(*)(void*,void*,void*,int)",
+    "Launch": "bool(*)(void*,void*,int)",
+    "Receive": "void(*)(void*,int,void*,void*,const Vec*,double,void*,int)",
+    "Visual": "void(*)(void*,void*,void*,void*,double,void*,int,bool)",
+    "Worker": "void(*)(void*)",
+    "SaveBegin": "void(*)(void*,void*,void*,int)",
+    "Reload": "void(*)(void*,void*,void*,bool)",
+    "Clone": "bool(*)(void*,const Vec*,uint8_t,void*,bool)",
+    "Build": "void*(*)(void*,void*,void*,void*,bool,uint64_t,const Vec*,bool,uint8_t,bool,void*)",
+    "ReadBlueprint": "void*(*)(void*,void*,void*)",
+    "EnterBlueprintIndex": "bool(*)(void*,void*)",
+    "EnterBlueprintPath": "bool(*)(void*,void*,void*)",
+    "PackBlueprint": "void*(*)(void*,void*,void*,void*,void*,int,uint64_t,void*,bool,void*,void*)",
+    "SaveArray": "bool(*)(void*,const wchar_t*,void*,uint32_t)"
+  },
+  "layouts": {
+    "UObject": {
+      "class": "0x10",
+      "UClass_FName_comparison_index": "0x18"
+    },
+    "Actor": {
+      "settled": "0x2b8",
+      "SettleKey": "0x2c4",
+      "ThrowIndicator": "0x2f0",
+      "SmartCannonFacility": "0x2f8"
+    },
+    "UActorComponent": {
+      "owner": "0xa8"
+    },
+    "SmartCannonFacility": {
+      "nearby_targets_count": "0x290",
+      "cache_valid": "0x298",
+      "indicator": "0x2a0",
+      "SmartCannonMaxDistance": "0x2c0"
+    },
+    "ThrowIndicator": {
+      "MovePattern": "0xc8",
+      "MinVerticalSpeed": "0xd0",
+      "MaxVerticalSpeed": "0xd8",
+      "HorizontalSpeed": "0xe0"
+    },
+    "Catcher_vtable": {
+      "catch_point_slot_byte_offset": "0x568"
+    },
+    "PlayerController": {
+      "CurrentState_weak": "0xaf0"
+    },
+    "SpatialCloneState": {
+      "placement_mode": "0x148",
+      "selection": "0x2d8",
+      "record_array_count": "0x2e0"
+    },
+    "CloneSelection": {
+      "records": "0x0",
+      "count": "0x8",
+      "additional_parameters": "0x10",
+      "additional_parameters_size": "0x14"
+    },
+    "CloneRecord": {
+      "stride": "0x200",
+      "source_key": "0x1ac",
+      "relative_position": "0x1b8",
+      "FName": "0x1d0",
+      "entity_reference": "0x1d8"
+    },
+    "BuildResult": {
+      "success": "0x14",
+      "actor": "0x20"
+    },
+    "BlueprintReadResult": {
+      "success": "0x0",
+      "clone_selection": "0x50"
+    },
+    "SaveCompletionContext": {
+      "action": "0x0",
+      "success": "0x1c"
+    },
+    "FString": {
+      "utf16_pointer": "0x0",
+      "count_including_NUL": "0x8"
+    },
+    "TArrayView64": {
+      "borrowed_pointer": "0x0",
+      "int64_count": "0x8"
+    },
+    "ReceiveWorkerContext": {
+      "receiver_entity": "0x78",
+      "speed_or_duration": "0x98",
+      "pattern": "0xa8"
+    },
+    "ReceiverEntity": {
+      "hopper_component": "0xd0"
+    },
+    "HooperComponent": {
+      "ThrowItems_array": "0x268",
+      "ThrowItems_count": "0x270",
+      "entry_stride": "0x28",
+      "entry_duration": "0x18"
+    },
+    "ProductVisualSystem": {
+      "entities": "0x2d0",
+      "count": "0x2d8"
+    },
+    "ProductVisualEntity": {
+      "stride": "0xf0",
+      "MovePattern": "0x1c",
+      "vertical_speed": "0x20",
+      "duration": "0x28",
+      "handle": "0x30"
+    },
+    "VisualHandle": {
+      "ordinal": "0x4",
+      "comparison_size": "0x8"
+    },
+    "FTransform_double": {
+      "translation": "0x20",
+      "translation_z": "0x30"
+    },
+    "SaveLoadSubsystem_probes": {
+      "game_state": "0xb8",
+      "spatial_subsystem": "0xc0"
+    },
+    "SpatialSubsystem_probes": {
+      "required_pointer": "0x600"
+    },
+    "ProductConfig_probes": {
+      "mesh": "0x28"
+    },
+    "ProductPacket_probes": {
+      "size": "0x70",
+      "count": "0x8",
+      "item_FName": "0x48",
+      "item_count": "0x50"
+    },
+    "CloneProbePacket": {
+      "size": "0x218",
+      "fields_copied_from_info": {
+        "0x1a0": "u8@0x20",
+        "0x1a1": "u8@0x22",
+        "0x1a2": "u8@0x23",
+        "0x1a4": "u64@0x2c",
+        "0x1ac": "source key argument",
+        "0x1b0": "u64@0x48",
+        "0x1b8": "Vec@0x50",
+        "0x1d0": "u64@0x78",
+        "0x198": "u64@0x48",
+        "0x20c": "u64@0x48"
+      }
+    },
+    "ProbeReceiveParameters": {
+      "size": "0xd8",
+      "game_state": "0x68",
+      "spatial_subsystem": "0x70",
+      "visual_system": "0x98"
+    }
+  },
+  "static_data": {
+    "SmartCannonMaxDistance_registration_descriptor": "0x147a92fe0",
+    "SmartCannonMaxDistance_flags": "0x0010000000010015",
+    "CustomColor_registration_descriptor": "0x147a3abc0",
+    "CustomColor_flags": "0x0010000001000014",
+    "SmartCannon_interface_vtable": "0x147a9a578",
+    "save_slot_byte_offset": "0x30",
+    "load_slot_byte_offset": "0x38",
+    "CPF_SaveGame": "0x01000000"
+  }
+}

@@ -1,0 +1,178 @@
+{
+  "native_entry": "0x144a1e1d0",
+  "seed": 3669570,
+  "random_points": 10000,
+  "equation_mismatches": [],
+  "cases": [
+    {
+      "target_relative_to_emitter": [
+        0,
+        0,
+        0
+      ],
+      "accepted": false
+    },
+    {
+      "target_relative_to_emitter": [
+        510,
+        0,
+        0
+      ],
+      "accepted": true
+    },
+    {
+      "target_relative_to_emitter": [
+        511,
+        0,
+        0
+      ],
+      "accepted": false
+    },
+    {
+      "target_relative_to_emitter": [
+        700,
+        0,
+        -300
+      ],
+      "accepted": true
+    },
+    {
+      "target_relative_to_emitter": [
+        50,
+        0,
+        100
+      ],
+      "accepted": false
+    },
+    {
+      "target_relative_to_emitter": [
+        52,
+        0,
+        100
+      ],
+      "accepted": true
+    },
+    {
+      "target_relative_to_emitter": [
+        200,
+        0,
+        200
+      ],
+      "accepted": true
+    },
+    {
+      "target_relative_to_emitter": [
+        128,
+        0,
+        251
+      ],
+      "accepted": false
+    },
+    {
+      "target_relative_to_emitter": [
+        800,
+        0,
+        -1000
+      ],
+      "accepted": true
+    },
+    {
+      "target_relative_to_emitter": [
+        800,
+        0,
+        -1000.01
+      ],
+      "accepted": false
+    },
+    {
+      "target_relative_to_emitter": [
+        1335,
+        0,
+        -1000
+      ],
+      "accepted": true
+    },
+    {
+      "target_relative_to_emitter": [
+        1336,
+        0,
+        -1000
+      ],
+      "accepted": false
+    }
+  ],
+  "max_distance_ignored": [
+    true,
+    true,
+    true
+  ],
+  "rotation_invariance": [
+    true,
+    true,
+    true,
+    true
+  ],
+  "translation_invariance": true,
+  "horizontal_slices_cm": [
+    {
+      "height": -1000,
+      "radius_interval": [
+        510.2040816326531,
+        1335.7316269132114
+      ]
+    },
+    {
+      "height": -400,
+      "radius_interval": [
+        204.08163265306123,
+        870.5233545050281
+      ]
+    },
+    {
+      "height": -100,
+      "radius_interval": [
+        51.02040816326531,
+        607.9632542397761
+      ]
+    },
+    {
+      "height": 0,
+      "radius_interval": [
+        0.0,
+        510.2040816326531
+      ]
+    },
+    {
+      "height": 50,
+      "radius_interval": [
+        25.510204081632654,
+        457.76203852038685
+      ]
+    },
+    {
+      "height": 100,
+      "radius_interval": [
+        51.02040816326531,
+        401.6828237860928
+      ]
+    },
+    {
+      "height": 200,
+      "radius_interval": [
+        102.04081632653062,
+        267.14632538264226
+      ]
+    },
+    {
+      "height": 249,
+      "radius_interval": [
+        127.04081632653062,
+        144.19529418453254
+      ]
+    },
+    {
+      "height": 250,
+      "radius_interval": null
+    }
+  ]
+}
