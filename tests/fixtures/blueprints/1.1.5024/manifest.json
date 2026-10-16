@@ -1,0 +1,26 @@
+{
+  "building_count": 2,
+  "settings_cm": [
+    {
+      "index": 0,
+      "drop": 700.0,
+      "horizontal": 300.0
+    },
+    {
+      "index": 1,
+      "drop": 350.0,
+      "horizontal": 150.0
+    }
+  ],
+  "native_footer_hex": "d5af4250",
+  "canonical_sha256": "83905794fbcf15e03aac3f5440588cb46a783e9dc1c15d8299abdb1e8e403938",
+  "game_version": "1.1.5024",
+  "native_source_keys": [
+    70,
+    71
+  ],
+  "files": {
+    "fountains-without-settings.png": "83905794fbcf15e03aac3f5440588cb46a783e9dc1c15d8299abdb1e8e403938",
+    "fountains-with-settings.png": "bd9078a3e88af152f94cbac928cacea2ac6ac8d756c81fe9ef90c970b60ce3a5"
+  }
+}

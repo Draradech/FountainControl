@@ -1,0 +1,78 @@
+{
+  "native_entry": "0x144a2cd50",
+  "blueprint": "BP_SmartCannonCeiling",
+  "defaults_source": "Live component defaults for 1.1.5024",
+  "pattern": 3,
+  "min_speed": 0,
+  "max_speed": 800,
+  "speed": -100,
+  "random_points": 10000,
+  "seed": 3669573,
+  "equation_mismatches": [],
+  "slices": [
+    {
+      "drop": 25,
+      "radius": 12.247644744667358,
+      "radius_cubes": 0.4899057897866943,
+      "centre_accepted": true,
+      "inside_accepted": true,
+      "outside_accepted": false
+    },
+    {
+      "drop": 50,
+      "radius": 34.019439890105,
+      "radius_cubes": 1.3607775956041999,
+      "centre_accepted": true,
+      "inside_accepted": true,
+      "outside_accepted": false
+    },
+    {
+      "drop": 100,
+      "radius": 87.08586938672231,
+      "radius_cubes": 3.483434775468892,
+      "centre_accepted": true,
+      "inside_accepted": true,
+      "outside_accepted": false
+    },
+    {
+      "drop": 200,
+      "radius": 208.6223311232291,
+      "radius_cubes": 8.344893244929164,
+      "centre_accepted": true,
+      "inside_accepted": true,
+      "outside_accepted": false
+    },
+    {
+      "drop": 320,
+      "radius": 366.2279029960465,
+      "radius_cubes": 14.64911611984186,
+      "centre_accepted": true,
+      "inside_accepted": true,
+      "outside_accepted": false
+    },
+    {
+      "drop": 400,
+      "radius": 475.12379862860655,
+      "radius_cubes": 19.004951945144263,
+      "centre_accepted": true,
+      "inside_accepted": true,
+      "outside_accepted": false
+    },
+    {
+      "drop": 750,
+      "radius": 970.2178008890949,
+      "radius_cubes": 38.808712035563794,
+      "centre_accepted": true,
+      "inside_accepted": true,
+      "outside_accepted": false
+    }
+  ],
+  "equal_height_accepted": false,
+  "above_accepted": false,
+  "beyond_drop_cap_accepted": false,
+  "max_distance_ignored": [
+    true,
+    true,
+    true
+  ]
+}

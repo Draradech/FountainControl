@@ -1,0 +1,24 @@
+ThrowIndicatorComponent /Game/Blueprints/Buildings/BP_SmartCannon.BP_SmartCannon_C:ThrowIndicator_GEN_VARIABLE
+MovePattern=2
+MinVerticalSpeed=0.0
+MaxVerticalSpeed=700.0
+HorizontalSpeed=500.0
+GetHorizontalRadius=510.20408163265
+SmartCannonFacilityComponent /Game/Blueprints/Buildings/BP_SmartCannon.BP_SmartCannon_C:SmartCannonFacility_GEN_VARIABLE
+SmartCannonMaxDistance=500.0
+HorizontalSpeed=500.0
+SmartCannonSpeed=2.0
+UseDrop=false
+EmitPosition=(0.0,0.0,60.0)
+ThrowIndicatorComponent /Game/Blueprints/Buildings/BP_SmartCannonCeiling.BP_SmartCannonCeiling_C:ThrowIndicator_GEN_VARIABLE
+MovePattern=3
+MinVerticalSpeed=0.0
+MaxVerticalSpeed=800.0
+HorizontalSpeed=-100.0
+GetHorizontalRadius=366.22790299605
+SmartCannonFacilityComponent /Game/Blueprints/Buildings/BP_SmartCannonCeiling.BP_SmartCannonCeiling_C:SmartCannonFacility_GEN_VARIABLE
+SmartCannonMaxDistance=500.0
+HorizontalSpeed=360.0
+SmartCannonSpeed=2.0
+UseDrop=true
+EmitPosition=(0.0,0.0,-55.0)

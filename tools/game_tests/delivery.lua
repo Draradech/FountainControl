@@ -2,7 +2,8 @@
 -- Set FCDeliveryFountainKey to its settled fountain's key. Optionally select a
 -- particular receiver with FCDeliveryReceiverName (GetFullName()).
 local s=FindFirstOf('GameSaveLoadSubsystem')
-assert(s.WorldTitleName:ToString():match('^FountainControl_.*Dev$'),'Test world required')
+assert((s.WorldTitleName:ToString():match('^FountainControl_.*Dev$') or
+    s.WorldTitleName:ToString():match('^FountainControl_.*Dev_%d%d%d%d%d%d%d%d%d%d$')),'Test world required')
 local FC=FountainControl
 FC.scan()
 local key=assert(FCDeliveryFountainKey,'Set FCDeliveryFountainKey from a fresh world inventory')
@@ -11,7 +12,7 @@ for _,a in pairs(FC.actors) do if a:GetSettleKey()==key then actor=a end end
 assert(actor,'Test fountain missing')
 local receiver
 for _,c in ipairs(FindAllOf('HopperCatcherComponent') or {}) do
- if c:IsValid() and (not FCDeliveryReceiverName or c:GetFullName()==FCDeliveryReceiverName) then receiver=c; break end
+ if c:IsValid() and c:GetOwner():GetSettledDown() and (not FCDeliveryReceiverName or c:GetFullName()==FCDeliveryReceiverName) then receiver=c; break end
 end
 assert(receiver)
 local owner=receiver:GetOwner()

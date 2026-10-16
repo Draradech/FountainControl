@@ -4,7 +4,8 @@
 -- Set FCBlueprintConflictKeys to the source keys from that export's world;
 -- FCBlueprintRequireCollisions=true requires two actual overlapping keys.
 local s=FindFirstOf('GameSaveLoadSubsystem')
-assert(s.WorldTitleName:ToString():match('^FountainControl_.*Dev$'))
+assert((s.WorldTitleName:ToString():match('^FountainControl_.*Dev$') or
+    s.WorldTitleName:ToString():match('^FountainControl_.*Dev_%d%d%d%d%d%d%d%d%d%d$')))
 local pc=FindFirstOf('BeltTDPlayerController')
 local state=pc:TryGetControllerState(FName('Clone'))
 assert(state:IsValid() and pc:TryEnterState(FName('Clone'),true))
@@ -24,7 +25,7 @@ if FCBlueprintRequireCollisions then assert(collisions==2,'Two actual source-ID 
 assert(state:EnterBlueprintModePath(s:GetBlueprintsDirectory():ToString(),assert(FCBlueprintTestFile)))
 local p=assert(FCBlueprintTestPosition)
 local result=FCProbeBlueprintPlace(state:GetAddress(),p[1],p[2],p[3],p[4] or 0,true)
-assert(result==2,'Both test fountains must fit at the selected location')
+assert(result==2,'Both test fountains must fit at the selected location; placed '..tostring(result))
 FountainControl.scan()
 local settings={}
 for _,actor in pairs(FountainControl.actors) do

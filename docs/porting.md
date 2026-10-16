@@ -5,6 +5,13 @@ Blueprint defaults and UI assets independently. FountainControl is intentionally
 pinned to one executable; a successful UE4SS startup or similar version number
 is not proof that its native hooks are compatible.
 
+The current profile is [1.1.5024](research/1.1.5024/reference-build.json);
+[its audit](research/1.1.5024/port-audit.md) records the 4963-to-5024 port.
+`dump_reference.py` defaults to this current profile. Select an archived profile
+explicitly when disassembling its matching executable. PE function bounds now
+follow chained unwind records; comparing only the first `.pdata` span can miss
+most of a function.
+
 ## Preserve and identify both builds
 
 Before updating, preserve the owned old shipping EXE, Steam appmanifest,
@@ -64,7 +71,7 @@ Install the optional analysis requirements into the repo's own environment:
 
 ```sh
 .tools/venv/bin/pip install -r tools/analysis-requirements.txt
-.tools/venv/bin/python tools/dump_reference.py --game /path/to/old/AlchemyFactory-Win64-Shipping.exe
+.tools/venv/bin/python tools/dump_reference.py --profile docs/research/1.0.4963/reference-build.json --game /path/to/old/AlchemyFactory-Win64-Shipping.exe
 .tools/venv/bin/python tools/pe_inspect.py --game /path/to/new/AlchemyFactory-Win64-Shipping.exe fields 0x2a0 0x2c0 --low 0x140000000 --high 0x150000000
 ```
 

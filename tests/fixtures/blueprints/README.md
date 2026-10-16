@@ -20,3 +20,11 @@ placement and collision/preview/mod-free checks, see
 [docs/testing.md](../../../docs/testing.md). Copy the game-exported files directly;
 image editors may strip the chunk or native tail. Both should remain ordinary
 native blueprints when the mod is absent.
+
+## 1.1.5024 fixtures
+
+The `1.1.5024/` pair was exported and title/description edited through the normal
+UI on 2026-10-16 with mod 0.1.8. Source keys 70/71 belong only to the fresh
+disposable port world. The metadata-free variant removes only `fcRs`; canonical
+PNG and native tail remain identical. Its own manifest records the hashes.
+Both the old and new fixture pairs are checked by `--check-fixtures`.

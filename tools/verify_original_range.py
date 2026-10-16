@@ -11,7 +11,7 @@ import struct
 from pathlib import Path
 
 import argparse
-from native_predicate import NativePredicate, ENTRY
+from native_predicate import NativePredicate
 
 
 def equation(x, y, z):
@@ -46,7 +46,7 @@ if __name__ == '__main__':
              (50, 0, 100), (52, 0, 100), (200, 0, 200), (128, 0, 251),
              (800, 0, -1000), (800, 0, -1000.01),
              (1335, 0, -1000), (1336, 0, -1000)]
-    report = {'native_entry': hex(ENTRY), 'seed': 3669570,
+    report = {'native_entry': hex(native.image.entry), 'seed': 3669570,
               'random_points': len(points), 'equation_mismatches': mismatches,
               'cases': [{'target_relative_to_emitter': p, 'accepted': native.accepts(*p)} for p in cases],
               'max_distance_ignored': [native.accepts(510, 0, 0, max_distance=d) for d in (1, 500, 10000)],

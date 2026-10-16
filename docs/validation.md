@@ -1,4 +1,42 @@
-# Validation through 0.1.7
+# Validation through 0.1.8
+
+
+## 0.1.8 game-update port — 2026-10-16
+
+Tested game **1.1.5024**, Steam build **25991404**, UE 5.7.4, stock UE4SS
+1161 and Proton Experimental. See the [native port audit](research/1.1.5024/port-audit.md)
+for the executable identity, ABI changes and evidence. All live mutations used
+a newly created `FountainControl_5024_Dev` Sandbox world (the game appended a
+timestamp). Historical player saves were not used. All 40 pre-existing save/blueprint files
+matched their pre-test hashes afterward. The original installed INI was restored
+(`RemoveCenterExclusion=false`), development commands disabled, and the temporary
+reflection-only helper removed. Final startup with that configuration passed.
+The disposable test world and exported test PNGs remain additional local files.
+
+| Check | Result |
+|---|---|
+| Host suites | Lua state, C++ metadata sanitizer and both real PNG fixture pairs passed. |
+| Native oracle | New and archived executables each passed 10,080 solver comparisons; fresh upright and hanging reports each cover 10,000 native samples without mismatches. |
+| Live hooks and UI | Strict hash gate and every hook initialized. Normal E opened the styled controls; mouse input covered 700/300, zero, maximum and Default, with independent adjacent settings and restored native ring. |
+| Live delivery | All 14 isolated native receiver/arrival cases passed. An ordinary portal → belts → fountain → Smart Hopper chain passed five corrected/capped/native cases; native launch, selection, visual repair and arrival ran. The hopper was drained between measurement phases to release backpressure. |
+| Cloud observation | Steam logs selected and persisted the new nested companion files; no second-machine download was tested. |
+| Save lifecycle | Normal SaveGame0, restart/reload and natural AutoSave0/1/2 companions had independently matching native SHA256 values. |
+| Mod-free recovery | With FountainControl removed, the exported PNG placed two real fountains and the world saved normally. Its changed native hash then produced the expected warning; surviving keys recovered their limits after re-enabling. |
+| Copy and move | Normal middle-button quick copy and UI cut/move preserved 700/300; the cut source was destroyed before placement. |
+| Blueprint transport | Fresh UI export, same-world import with real source-key collisions, metadata-free import defaults, archived PNG import, ghost caps and native catalog metadata editing passed. A fresh edited native/settings PNG pair is committed. |
+
+A development attempt to call `PackToBlueprint` with a nil texture crashed in
+UE4SS Lua argument conversion (read at 0x70). It was discarded and replaced
+with normal UI export/edit tests, which passed. This is a failed probe, not a
+claim that arbitrary native calls are safe. No crash report was sent.
+
+Windows was not rerun for this port. Non-hopper receiver implementations and
+Workshop transport were inspected in native code; equivalent live arrivals for
+those receivers and an online Workshop round trip remain untested. No long
+session or second-machine cloud download is claimed. Older results below retain
+their original versions and do not imply those checks were repeated on 5024.
+
+## Historical validation through 0.1.7
 
 Checks through 0.1.4 were validated on 2026-10-07 with Steam build 25321648, Alchemy Factory 1.0.4963,
 UE 5.7.4, UE4SS v3.0.1-946-g265115c0 and Proton Experimental. Integration

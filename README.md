@@ -119,8 +119,8 @@ not been tested.
 
 ## Compatibility and troubleshooting
 
-Version **0.1.7** was tested with **Alchemy Factory 1.0.4963 / Steam build
-25321648**, Unreal Engine 5.7.4 and **UE4SS v3.0.1-1161-g6eb3d9bc**, including
+Version **0.1.8** was tested with **Alchemy Factory 1.1.5024 / Steam build
+25991404**, Unreal Engine 5.7.4 and **UE4SS v3.0.1-1161-g6eb3d9bc**, including
 Proton Experimental.
 
 If the View prompt or controls do not appear, check the folder layout,

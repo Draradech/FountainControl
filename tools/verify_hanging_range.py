@@ -41,8 +41,8 @@ if __name__ == '__main__':
                        'centre_accepted': native.accepts(0, 0, -drop),
                        'inside_accepted': native.accepts(radius-.01, 0, -drop),
                        'outside_accepted': native.accepts(radius+.01, 0, -drop)})
-    report = {'native_entry': '0x144a1e1d0', 'blueprint': 'BP_SmartCannonCeiling',
-              'defaults_source': 'hanging-fountain-runtime.txt',
+    report = {'native_entry': hex(native.image.entry), 'blueprint': 'BP_SmartCannonCeiling',
+              'defaults_source': 'Live component defaults for '+native.image.version,
               'pattern': 3, 'min_speed': 0, 'max_speed': 800, 'speed': -100,
               'random_points': len(points), 'seed': 3669573, 'equation_mismatches': mismatches,
               'slices': slices, 'equal_height_accepted': native.accepts(0,0,0),

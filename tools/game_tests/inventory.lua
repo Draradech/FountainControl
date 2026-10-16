@@ -10,5 +10,5 @@ for _,a in ipairs(FindAllOf('BP_SmartCannon_C') or {}) do
     end
 end
 for _,c in ipairs(FindAllOf('HopperCatcherComponent') or {}) do
-    if c:IsValid() then FCDev.log('Receiver: '..c:GetFullName()) end
+    if c:IsValid() and c:GetOwner():GetSettledDown() then FCDev.log('Receiver: '..c:GetFullName()) end
 end

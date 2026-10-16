@@ -9,13 +9,14 @@ to recreate the large/environment-specific ones.
 
 | Location | What it preserves |
 |---|---|
+| [research/1.1.5024/reference-build.json](research/1.1.5024/reference-build.json) | Current executable, hook, ABI and layout profile; accompanied by port audit, fresh native oracle reports and live defaults. |
 | [research/1.0.4963/reference-build.json](research/1.0.4963/reference-build.json) | Exact game/loader identities; 22 native hooks, helpers/research anchors, typedefs and raw layouts. Historical data, not mod configuration. |
 | [research/1.0.4963/individual/](research/1.0.4963/individual/) | Original placed upright actor, ThrowIndicator and SmartCannonFacility LiveView JSON dumps. Addresses, object names and FName indices belong to that old session. |
 | [fountain-range-verification.json](research/1.0.4963/fountain-range-verification.json) | Original native upright oracle results: 10,000 points, slices, translation/rotation, max-distance ignored. |
 | [hanging-fountain-range-verification.json](research/1.0.4963/hanging-fountain-range-verification.json) | Native pattern-3 verification and boundary slices. |
 | [hanging-fountain-runtime.txt](research/1.0.4963/hanging-fountain-runtime.txt) | Actual upright/hanging loaded component-template defaults and getter returns. Defaults, not placed hanging-instance overrides. |
 | [move-pattern-fallback-verification.json](research/1.0.4963/move-pattern-fallback-verification.json) | Unsupported mode behavior and reference getter values; not evidence of coherent extra modes. |
-| [tests/fixtures/blueprints](../tests/fixtures/blueprints/README.md) | Two small real exported native PNGs, with/without settings, plus canonical/file hashes and source-key provenance. No full player world needed. |
+| [tests/fixtures/blueprints](../tests/fixtures/blueprints/README.md) | Real exported native PNG pairs from 4963 and 5024, with/without settings, plus canonical/file hashes and source-key provenance. No full player world needed. |
 | [images/](images/) | End-user range graph and settings screenshot. Graph source is tools/plot_range.py; screenshot came from the real game. |
 
 These were selected from parent-project research and local validation artifacts.

@@ -45,9 +45,9 @@ both EnterBlueprintMode paths, the common PNG reader, selection clearing and
 the final synchronous file writer. All remain executable-fingerprint gated.
 
 The native Workshop upload implementation was traced on the pinned build:
-`UploadBlueprint` reaches `0x144b034c0`, then the update implementation at
-`0x144ae9880`. It joins the existing directory and PNG filename using
-`0x144ab4d30` and passes that file as content to the Steam UGC interface; it
+`UploadBlueprint` reaches `0x144b24bc0`, then the update implementation at
+`0x144b09f60`. It joins the existing directory and PNG filename using
+`0x144ad3760` and passes that file as content to the Steam UGC interface; it
 reads blueprint descriptions separately and does not re-encode the PNG.
 Embedding the settings in the content file therefore supports its normal
 Workshop transport. This is a conclusion from native code inspection; no
@@ -60,12 +60,12 @@ the relevant carrier.
 
 | Path | Preferred VA |
 |---|---|
-| PackToBlueprint implementation | `0x144ac6000` |
-| Common blueprint PNG reader | `0x144aca1e0` |
-| EnterBlueprintMode by index | `0x144ab6d90` |
-| EnterBlueprintModePath | `0x144ab7180` |
-| Clear clone selection | `0x144ab3ce0` |
-| SaveArrayToFile | `0x1412efd40` |
+| PackToBlueprint implementation | `0x144ae5fb0` |
+| Common blueprint PNG reader | `0x144aea1d0` |
+| EnterBlueprintMode by index | `0x144ad5b80` |
+| EnterBlueprintModePath | `0x144ad5f70` |
+| Clear clone selection | `0x144ad2710` |
+| SaveArrayToFile | `0x1412f2230` |
 
 `USpatialCloneState + 0x2d8` contains the current `FCloneBuildingState`.
 Building records have stride `0x200`; source key, relative position and

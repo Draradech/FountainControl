@@ -8,7 +8,7 @@ root=Path(__file__).resolve().parents[1]
 stage=root/'dist/FountainControl'
 assert (stage/'dlls/main.dll').is_file(),'Run tools/build.py first'
 assert (stage/'LICENSE').read_bytes()==(root/'LICENSE').read_bytes(),'Stage the current LICENSE before packaging'
-archive=root/'dist/FountainControl-0.1.7.zip'
+archive=root/'dist/FountainControl-0.1.8.zip'
 with zipfile.ZipFile(archive,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=9) as output:
     for path in sorted(stage.rglob('*')):
         if path.is_file():

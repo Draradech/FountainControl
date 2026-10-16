@@ -69,7 +69,14 @@ def inspect(path):
 
 def check_fixtures():
     folder = Path(__file__).resolve().parents[1] / 'tests/fixtures/blueprints'
-    manifest = json.loads((folder / 'manifest.json').read_text())
+    for manifest in [folder / 'manifest.json', *sorted(folder.glob('*/manifest.json'))]:
+        check_manifest(manifest)
+    print('Real native blueprint fixtures: CRC, metadata, canonical fingerprint and unchanged tail passed')
+
+
+def check_manifest(path):
+    folder = path.parent
+    manifest = json.loads(path.read_text())
     for name, digest in manifest['files'].items():
         report = inspect(folder / name)
         assert report['sha256'] == digest, name
@@ -80,7 +87,6 @@ def check_fixtures():
             assert report['settings_cm'] == manifest['settings_cm']
         else:
             assert report['metadata_chunks'] == 0
-    print('Real native blueprint fixtures: CRC, metadata, canonical fingerprint and unchanged tail passed')
 
 
 if __name__ == '__main__':

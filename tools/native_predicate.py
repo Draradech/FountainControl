@@ -18,16 +18,22 @@ class Image:
     def __init__(self):
         default_path = Path.home() / '.local/share/Steam/steamapps/common/Alchemy Factory/AlchemyFactory/Binaries/Win64/AlchemyFactory-Win64-Shipping.exe'
         path = Path(os.environ.get('FOUNTAINCONTROL_GAME_EXE', default_path))
-        if hashlib.sha256(path.read_bytes()).hexdigest()!='66618d029654d125723c95e8e62919f267973ad881e24abff3b80e0b355a52f8':
-            raise RuntimeError('Native comparison requires the supported 1.0.4963 executable')
+        digest = hashlib.sha256(path.read_bytes()).hexdigest()
+        if digest not in BUILDS:
+            raise RuntimeError('Native comparison requires a verified executable (1.0.4963 or 1.1.5024)')
+        self.version, self.entry, self.transform, self.fname = BUILDS[digest]
         self.pe=pefile.PE(str(path),fast_load=True)
         self.base=self.pe.OPTIONAL_HEADER.ImageBase
     def read(self,address,length):
         return self.pe.get_data(address-self.base,length)
 
-ENTRY = 0x144A1E1D0
-TRANSFORM = 0x144A1C6C0
-FNAME = 0x141330710
+# Each profile was audited against its own executable; selection never bypasses hashing.
+BUILDS = {
+    '66618d029654d125723c95e8e62919f267973ad881e24abff3b80e0b355a52f8':
+        ('1.0.4963', 0x144A1E1D0, 0x144A1C6C0, 0x141330710),
+    'e44fbdbd469fc42a217741da8dbcdcfa967afa245af4a21d1b305110e08d456a':
+        ('1.1.5024', 0x144A2CD50, 0x144A2A990, 0x141332C00),
+}
 FACILITY, INDICATOR, TARGET = 0x200000, 0x201000, 0x202000
 STACK, STOP = 0x400000, 0x300000
 
@@ -54,10 +60,10 @@ class NativePredicate:
         return True
 
     def stub(self, uc, address, size, data):
-        if address not in (TRANSFORM, FNAME):
+        if address not in (self.image.transform, self.image.fname):
             return
-        out = uc.reg_read(UC_X86_REG_RDX if address == TRANSFORM else UC_X86_REG_RCX)
-        uc.mem_write(out, struct.pack('<ddd', *self.emitter) if address == TRANSFORM else bytes(8))
+        out = uc.reg_read(UC_X86_REG_RDX if address == self.image.transform else UC_X86_REG_RCX)
+        uc.mem_write(out, struct.pack('<ddd', *self.emitter) if address == self.image.transform else bytes(8))
         uc.reg_write(UC_X86_REG_RAX, out)
         rsp = uc.reg_read(UC_X86_REG_RSP)
         ret = struct.unpack('<Q', uc.mem_read(rsp, 8))[0]
@@ -73,7 +79,7 @@ class NativePredicate:
         self.uc.reg_write(UC_X86_REG_RSP, rsp)
         self.uc.reg_write(UC_X86_REG_RCX, FACILITY)
         self.uc.reg_write(UC_X86_REG_RDX, TARGET)
-        self.uc.emu_start(ENTRY, STOP, count=2000)
+        self.uc.emu_start(self.image.entry, STOP, count=2000)
         assert self.uc.reg_read(UC_X86_REG_RIP) == STOP
         return bool(self.uc.reg_read(UC_X86_REG_RAX) & 0xff)
 

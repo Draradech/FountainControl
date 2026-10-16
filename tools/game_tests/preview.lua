@@ -1,7 +1,8 @@
 -- Read-only validation while actual copy/move/blueprint ghosts are active.
 -- Optionally set FCPreviewExpected to a list of expected horizontal caps in cm.
 local s=FindFirstOf('GameSaveLoadSubsystem')
-assert(s.WorldTitleName:ToString():match('^FountainControl_.*Dev$'))
+assert((s.WorldTitleName:ToString():match('^FountainControl_.*Dev$') or
+    s.WorldTitleName:ToString():match('^FountainControl_.*Dev_%d%d%d%d%d%d%d%d%d%d$')))
 local pc=FindFirstOf('BeltTDPlayerController')
 FountainControl.preview()
 local limits=FCGetGhostPreviews(pc:GetAddress())

@@ -77,7 +77,8 @@ Never carry this debugging option into distributed default configuration.
 
 Use the game's ordinary New Game/Sandbox UI to create a world whose title matches
 `^FountainControl_.*Dev$`, for example **FountainControl_Handoff_Dev**. Leave
-multiplayer off. The mutation tests enforce that title pattern. Provide a large
+multiplayer off. The game may append `_` and ten timestamp digits; the mutation
+tests also accept that exact suffix. They reject unrelated world names. Provide a large
 clear supported floor area, two upright Arcane Fountains, an isolated hopper
 receiver with room in its inventory, and enough materials (or Sandbox mode).
 Keep ordinary production chains away from the test receiver so incoming items
@@ -306,3 +307,14 @@ Use `FountainControl.set(actor,drop,horizontal)` for normalized live settings,
 `get(actor)` for clone-aware reads, `scan()` for discovery and `preview()` for
 ring updates. Native pointer injection with the wrong type/ABI can crash even
 inside xpcall; development functions are not an external stable modding API.
+
+For ordinary production tests, a Smart Hopper needs its native item filter set
+to the supplied product and free capacity. A basic hopper is not a smart target.
+A portal-to-belt-to-fountain chain exercises native supply, selection and launch;
+the isolated receive probe above does not replace that check.
+
+On the local X11 computer tool, instantaneous click/key pulses can be missed.
+A stationary drag with `--steps 1 --duration .1` provides a held UI click.
+Captured mouse placement needs a held button without motion events; repeated
+stationary motion events can rotate the camera or repeat placement. Always
+activate the game immediately before input.

@@ -19,7 +19,29 @@ class Image:
         self.text = self.text_section.get_data()
         pdata = next(s for s in self.pe.sections if s.Name.rstrip(b'\0') == b'.pdata').get_data()
         directory = self.pe.OPTIONAL_HEADER.DATA_DIRECTORY[3]
-        self.functions = sorted((self.base + a, self.base + b) for a, b, _ in struct.iter_unpack('<III', pdata[:directory.Size]) if a and b)
+        entries = [(a, b, u) for a, b, u in struct.iter_unpack('<III', pdata[:directory.Size]) if a and b]
+        # MSVC splits functions into multiple RUNTIME_FUNCTION records. Follow
+        # UNW_FLAG_CHAININFO so inspection includes every chained code span.
+        unwind = {a: (b, u) for a, b, u in entries}
+        def root(start):
+            seen = set()
+            while start in unwind:
+                if start in seen:
+                    raise ValueError('Cyclic chained unwind metadata')
+                seen.add(start)
+                _, rva = unwind[start]
+                header = self.pe.get_data(rva, 4)
+                if not header[0] & 0x20:
+                    break
+                chain = rva + 4 + ((header[2] + 1) & ~1) * 2
+                start = struct.unpack('<III', self.pe.get_data(chain, 12))[0]
+            return start
+        groups = {}
+        for a, b, _ in entries:
+            owner = root(a)
+            groups.setdefault(owner, []).append((a, b))
+        self.functions = sorted((self.base + min(a for a, _ in spans),
+                                 self.base + max(b for _, b in spans)) for spans in groups.values())
         self.starts = [a for a, _ in self.functions]
         self.md = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_64)
         self.md.detail = True

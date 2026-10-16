@@ -1,23 +1,23 @@
-# Native integration, 1.0.4963
+# Native integration, 1.1.5024
 
 All addresses below are preferred-image virtual addresses (base 0x140000000).
 The DLL rebases them against the loaded image. A full executable fingerprint
 gates all hooks; these addresses are not signatures for other builds.
 
-SHA256: `66618d029654d125723c95e8e62919f267973ad881e24abff3b80e0b355a52f8`.
+SHA256: `e44fbdbd469fc42a217741da8dbcdcfa967afa245af4a21d1b305110e08d456a`.
 
 | Integration | Address |
 |---|---|
-| ScriptInteractionComponent primary interaction | 0x144a24200 |
-| Fountain reach predicate | 0x144a1e1d0 |
-| Compatible receiver selection | 0x144a19500 |
-| Fountain product launch | 0x144a073d0 |
-| Product visual interpolation | 0x1449fae30 |
-| Hopper receive worker | 0x144a0d760 |
-| Cauldron, goods, hopper, raw material, trash receive | 0x144a14120, 0x144a14380, 0x144a145f0, 0x144a14790, 0x144a149c0 |
-| Native save begin / completion | 0x144acd490 / 0x144aaae90 |
-| Reload notification | 0x144acb850 |
-| SpatialCloneState clone / building creation | 0x144ac84c0 / 0x144ad34d0 |
+| ScriptInteractionComponent primary interaction | 0x144a33ae0 |
+| Fountain reach predicate | 0x144a2cd50 |
+| Compatible receiver selection | 0x144a27cb0 |
+| Fountain product launch | 0x144a147a0 |
+| Product visual interpolation | 0x144a088e0 |
+| Hopper receive worker | 0x144a1ad00 |
+| Cauldron, goods, hopper, raw material, trash receive | 0x144a21d00, 0x144a21f60, 0x144a221d0, 0x144a22370, 0x144a225a0 |
+| Native save begin / completion | 0x144aedff0 / 0x144adc760 |
+| Reload notification | 0x144aebc50 |
+| SpatialCloneState clone / building creation | 0x144ae84a0 / 0x144af42f0 |
 
 ## Geometry and throws
 
@@ -46,10 +46,21 @@ The existing receiver selector retains native item compatibility and rotation
 among targets, with the extra reach check applied. Changing settings invalidates
 the native nearby-target cache.
 
+The 1.1.5024 port changes the receiver catch-point vtable slot to `+0x570`
+(previously `+0x568`). The save subsystem's GameState/SpatialGrid fields move
+from `+0xb8/+0xc0` to `+0xe0/+0xe8`. Other raw layouts used by the mod retain
+their offsets; see the [build profile](research/1.1.5024/reference-build.json).
+The visual creator adds a queue-once flag at entity `+1`, without changing the
+hook ABI or duration/pattern/handle fields.
+
 ## Saves and building identity
 
-Native save begin snapshots live registered fountains by SettleKey. The native
-completion callback commits the companion only when SaveGameToSlot actually
+Native save begin snapshots live registered fountains by SettleKey. In
+1.1.5024, save actions queue at `0x144acbbb0` and start at `0x144af0510`.
+The hook at `0x144adc760` receives `(action, slot, user, success)` directly;
+its success argument comes from the closed writer through `0x144acee10`.
+Early failure paths reach the same method with false and discard the snapshot. The native
+completion method commits the companion only when SaveGameToSlot actually
 succeeds, after the `.sav` writer closes. It computes SHA256, writes schema 1
 JSON to `<world>/FountainControl/<slot>.sav.tmp` and atomically replaces
 `<world>/FountainControl/<slot>.sav`. The world is the native save's parent
@@ -131,8 +142,8 @@ The preview bridge reads the controller's serial-checked CurrentState weak
 reference at `+0xaf0`. It accepts only `BP_SpatialCloneState_C` in placement
 mode (`+0x148`), and reads its current building records at `+0x2d8`.
 Each record's native entity reference at `+0x1d8` resolves its ghost actor
-through `0x144a5b040`, which checks the weak object's serial and validity.
-The CurrentState weak resolver is `0x141540ca0`. These reads remain protected
+through `0x144a74770`, which checks the weak object's serial and validity.
+The CurrentState weak resolver is `0x141543000`. These reads remain protected
 by the existing executable fingerprint; no additional hooks were added.
 
 Only unsettled upright fountain actors are returned. The shared source lookup

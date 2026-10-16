@@ -11,7 +11,7 @@ from pe_inspect import GAME, Image
 root = Path(__file__).resolve().parents[1]
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--game', type=Path, default=GAME)
-parser.add_argument('--profile', type=Path, default=root / 'docs/research/1.0.4963/reference-build.json')
+parser.add_argument('--profile', type=Path, default=root / 'docs/research/1.1.5024/reference-build.json')
 parser.add_argument('--output', type=Path, default=root / 'runtime/research/reference-disassembly.txt')
 args = parser.parse_args()
 profile = json.loads(args.profile.read_text())

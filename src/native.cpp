@@ -84,7 +84,8 @@ Visual original_visual;
 Worker original_hopper;
 using SaveBegin = void(*)(void*,void*,void*,int);
 SaveBegin original_save_begin;
-Worker original_save_complete;
+using SaveComplete = void(*)(void*,void*,int,bool);
+SaveComplete original_save_complete;
 using Reload = void(*)(void*,void*,void*,bool);
 Reload original_reload;
 using Clone = bool(*)(void*,const Vec*,uint8_t,void*,bool);
@@ -290,16 +291,16 @@ void save_begin(void* action,void* info,void* slot,int user) {
     }
     original_save_begin(action,info,slot,user);
 }
-void save_complete(void* context) {
+void save_complete(void* action,void* slot,int user,bool success) {
     std::optional<Snapshot> snapshot;
     {
         std::scoped_lock lock(mutex);
-        auto found=pending_saves.find(field<void*>(context,0));
+        auto found=pending_saves.find(action);
         if (found!=pending_saves.end()) { snapshot=std::move(found->second); pending_saves.erase(found); }
     }
     // This callback receives the actual SaveGameToSlot result, after the file
     // writer has closed the save. A failed save never gets a new companion.
-    if (snapshot && field<bool>(context,0x1c)) {
+    if (snapshot && success) {
         auto hash=fingerprint(snapshot->save);
         if (!hash.empty()) {
             auto companion=snapshot->save.parent_path() / L"FountainControl" / snapshot->save.filename();
@@ -318,7 +319,7 @@ void save_complete(void* context) {
             }
         } else log("Completed save could not be fingerprinted; companion skipped");
     }
-    original_save_complete(context);
+    original_save_complete(action,slot,user,success);
 }
 
 std::optional<Limits> limits_for(void* f) {
@@ -329,7 +330,7 @@ std::optional<Limits> limits_for(void* f) {
 }
 Vec delta_for(void* f, const Vec& target) {
     Vec origin;
-    address<Emit>(0x144a1c6c0)(f,&origin);
+    address<Emit>(0x144a2a990)(f,&origin);
     return {target.x-origin.x,target.y-origin.y,target.z-origin.z};
 }
 bool reach(void* f, const Vec* target) {
@@ -345,7 +346,7 @@ void* select(void* f,void* game,void* item,int count) {
         if (!receiver) return nullptr;
         Vec target;
         auto vt = field<void**>(receiver,0);
-        reinterpret_cast<Catch>(vt[0x568/8])(receiver,&target);
+        reinterpret_cast<Catch>(vt[0x570/8])(receiver,&target);
         if (reach(f,&target)) return receiver;
     }
     return nullptr;
@@ -363,7 +364,7 @@ template<size_t I> void receive(void* receiver,int index,void* game,void* entity
     if (limits && pattern == 2 && remove_centre) {
         Vec target;
         auto vt = field<void**>(receiver,0);
-        reinterpret_cast<Catch>(vt[0x568/8])(receiver,&target);
+        reinterpret_cast<Catch>(vt[0x570/8])(receiver,&target);
         auto flight = solve({target.x-from->x,target.y-from->y,target.z-from->z},*limits,true);
         if (flight && flight->repaired) { speed=flight->time; pattern=custom_flight; ++repaired_counts[0]; }
     }
@@ -426,33 +427,33 @@ void initialize(bool remove) {
     remove_centre=remove;
     wchar_t path[32768];
     GetModuleFileNameW(nullptr,path,32768);
-    if (fingerprint(path)!="66618d029654d125723c95e8e62919f267973ad881e24abff3b80e0b355a52f8") {
+    if (fingerprint(path)!="e44fbdbd469fc42a217741da8dbcdcfa967afa245af4a21d1b305110e08d456a") {
         log("Unsupported game executable; native hooks disabled"); return;
     }
     image=reinterpret_cast<uintptr_t>(GetModuleHandleW(nullptr));
     std::vector<Hook> hooks {
-        {0x144a24200,reinterpret_cast<void*>(&interact),reinterpret_cast<void**>(&original_interaction)},
-        {0x144a1e1d0,reinterpret_cast<void*>(&reach),reinterpret_cast<void**>(&original_reach)},
-        {0x144a19500,reinterpret_cast<void*>(&select),reinterpret_cast<void**>(&original_select)},
-        {0x144a073d0,reinterpret_cast<void*>(&launch),reinterpret_cast<void**>(&original_launch)},
-        {0x1449fae30,reinterpret_cast<void*>(&visual),reinterpret_cast<void**>(&original_visual)},
-        {0x144a0d760,reinterpret_cast<void*>(&hopper),reinterpret_cast<void**>(&original_hopper)},
-        {0x144a14120,reinterpret_cast<void*>(&receive<0>),reinterpret_cast<void**>(&original_receive[0])},
-        {0x144a14380,reinterpret_cast<void*>(&receive<1>),reinterpret_cast<void**>(&original_receive[1])},
-        {0x144a145f0,reinterpret_cast<void*>(&receive<2>),reinterpret_cast<void**>(&original_receive[2])},
-        {0x144a14790,reinterpret_cast<void*>(&receive<3>),reinterpret_cast<void**>(&original_receive[3])},
-        {0x144a149c0,reinterpret_cast<void*>(&receive<4>),reinterpret_cast<void**>(&original_receive[4])},
-        {0x144acd490,reinterpret_cast<void*>(&save_begin),reinterpret_cast<void**>(&original_save_begin)},
-        {0x144aaae90,reinterpret_cast<void*>(&save_complete),reinterpret_cast<void**>(&original_save_complete)},
-        {0x144acb850,reinterpret_cast<void*>(&reload),reinterpret_cast<void**>(&original_reload)},
-        {0x144ac84c0,reinterpret_cast<void*>(&clone),reinterpret_cast<void**>(&original_clone)},
-        {0x144ad34d0,reinterpret_cast<void*>(&build),reinterpret_cast<void**>(&original_build)},
-        {0x144aca1e0,reinterpret_cast<void*>(&read_blueprint),reinterpret_cast<void**>(&original_read_blueprint)},
-        {0x144ab6d90,reinterpret_cast<void*>(&enter_blueprint_index),reinterpret_cast<void**>(&original_enter_blueprint_index)},
-        {0x144ab7180,reinterpret_cast<void*>(&enter_blueprint_path),reinterpret_cast<void**>(&original_enter_blueprint_path)},
-        {0x144ab3ce0,reinterpret_cast<void*>(&clear_clone),reinterpret_cast<void**>(&original_clear_clone)},
-        {0x144ac6000,reinterpret_cast<void*>(&pack_blueprint),reinterpret_cast<void**>(&original_pack_blueprint)},
-        {0x1412efd40,reinterpret_cast<void*>(&save_array),reinterpret_cast<void**>(&original_save_array)},
+        {0x144a33ae0,reinterpret_cast<void*>(&interact),reinterpret_cast<void**>(&original_interaction)},
+        {0x144a2cd50,reinterpret_cast<void*>(&reach),reinterpret_cast<void**>(&original_reach)},
+        {0x144a27cb0,reinterpret_cast<void*>(&select),reinterpret_cast<void**>(&original_select)},
+        {0x144a147a0,reinterpret_cast<void*>(&launch),reinterpret_cast<void**>(&original_launch)},
+        {0x144a088e0,reinterpret_cast<void*>(&visual),reinterpret_cast<void**>(&original_visual)},
+        {0x144a1ad00,reinterpret_cast<void*>(&hopper),reinterpret_cast<void**>(&original_hopper)},
+        {0x144a21d00,reinterpret_cast<void*>(&receive<0>),reinterpret_cast<void**>(&original_receive[0])},
+        {0x144a21f60,reinterpret_cast<void*>(&receive<1>),reinterpret_cast<void**>(&original_receive[1])},
+        {0x144a221d0,reinterpret_cast<void*>(&receive<2>),reinterpret_cast<void**>(&original_receive[2])},
+        {0x144a22370,reinterpret_cast<void*>(&receive<3>),reinterpret_cast<void**>(&original_receive[3])},
+        {0x144a225a0,reinterpret_cast<void*>(&receive<4>),reinterpret_cast<void**>(&original_receive[4])},
+        {0x144aedff0,reinterpret_cast<void*>(&save_begin),reinterpret_cast<void**>(&original_save_begin)},
+        {0x144adc760,reinterpret_cast<void*>(&save_complete),reinterpret_cast<void**>(&original_save_complete)},
+        {0x144aebc50,reinterpret_cast<void*>(&reload),reinterpret_cast<void**>(&original_reload)},
+        {0x144ae84a0,reinterpret_cast<void*>(&clone),reinterpret_cast<void**>(&original_clone)},
+        {0x144af42f0,reinterpret_cast<void*>(&build),reinterpret_cast<void**>(&original_build)},
+        {0x144aea1d0,reinterpret_cast<void*>(&read_blueprint),reinterpret_cast<void**>(&original_read_blueprint)},
+        {0x144ad5b80,reinterpret_cast<void*>(&enter_blueprint_index),reinterpret_cast<void**>(&original_enter_blueprint_index)},
+        {0x144ad5f70,reinterpret_cast<void*>(&enter_blueprint_path),reinterpret_cast<void**>(&original_enter_blueprint_path)},
+        {0x144ad2710,reinterpret_cast<void*>(&clear_clone),reinterpret_cast<void**>(&original_clear_clone)},
+        {0x144ae5fb0,reinterpret_cast<void*>(&pack_blueprint),reinterpret_cast<void**>(&original_pack_blueprint)},
+        {0x1412f2230,reinterpret_cast<void*>(&save_array),reinterpret_cast<void**>(&original_save_array)},
     };
     if (MH_Initialize()!=MH_OK) { log("MinHook initialization failed"); return; }
     for (auto h:hooks) {
@@ -468,7 +469,7 @@ void initialize(bool remove) {
         log("Hook activation failed; hooks disabled"); return;
     }
     active=true;
-    log("Verified Alchemy Factory 1.0.4963; all fountain hooks enabled");
+    log("Verified Alchemy Factory 1.1.5024; all fountain hooks enabled");
 }
 bool ready() { return active; }
 void set_fountain_class_name(uint32_t name) { fountain_class_name=name; }
@@ -499,7 +500,7 @@ std::vector<GhostPreview> ghost_previews(void* controller) {
     if (!active || !controller || !preview_class_name) return result;
     // CurrentState can be null during menus and loading. The reflected name
     // getter assumes an active state; use the serial-checked weak resolver.
-    auto state=address<void*(*)(void*)>(0x141540ca0)(static_cast<char*>(controller)+0xaf0);
+    auto state=address<void*(*)(void*)>(0x141543000)(static_cast<char*>(controller)+0xaf0);
     auto state_class=state ? field<void*>(state,0x10) : nullptr;
     if (!state_class || field<uint32_t>(state_class,0x18)!=preview_class_name
         || !field<bool>(state,0x148)) return result;
@@ -512,7 +513,7 @@ std::vector<GhostPreview> ghost_previews(void* controller) {
     std::scoped_lock lock(mutex);
     for (int index=0;index<count;++index) {
         auto record=records+index*0x200;
-        auto actor=address<void*(*)(void*)>(0x144a5b040)(record+0x1d8);
+        auto actor=address<void*(*)(void*)>(0x144a74770)(record+0x1d8);
         auto actor_class=actor ? field<void*>(actor,0x10) : nullptr;
         if (!actor_class || !fountain_class_name || field<uint32_t>(actor_class,0x18)!=fountain_class_name
             || field<bool>(actor,0x2b8) || !field<void*>(actor,0x2f0)
@@ -524,7 +525,7 @@ std::vector<GhostPreview> ghost_previews(void* controller) {
 }
 Probe probe(void* f,Vec relative) {
     Probe result{};
-    address<Emit>(0x144a1c6c0)(f,&result.origin);
+    address<Emit>(0x144a2a990)(f,&result.origin);
     Vec target{result.origin.x+relative.x,result.origin.y+relative.y,result.origin.z+relative.z};
     result.vanilla=original_reach(f,&target);
     result.modified=reach(f,&target);
@@ -535,27 +536,27 @@ Probe probe(void* f,Vec relative) {
 Vec catch_point(void* receiver) {
     if (!receiver) return {};
     Vec result{}; auto vt=field<void**>(receiver,0);
-    reinterpret_cast<Catch>(vt[0x568/8])(receiver,&result);
+    reinterpret_cast<Catch>(vt[0x570/8])(receiver,&result);
     return result;
 }
 bool deliver_probe(void* facility,void* receiver,void* subsystem,void* visuals,uint64_t item) {
     if (!active || !receiver || !subsystem || !visuals || !limits_for(facility)) return false;
-    void* spatial=field<void*>(subsystem,0xc0);
+    void* spatial=field<void*>(subsystem,0xe8);
     if (!spatial || !field<void*>(spatial,0x600)) return false;
     // Production receives FTypeGroupParam, not the GameState actor itself.
     alignas(16) std::array<char,0xd8> parameters{};
-    field<void*>(parameters.data(),0x68)=field<void*>(subsystem,0xb8);
+    field<void*>(parameters.data(),0x68)=field<void*>(subsystem,0xe0);
     field<void*>(parameters.data(),0x70)=spatial;
     field<void*>(parameters.data(),0x98)=visuals;
     Vec target=catch_point(receiver);
     if (!reach(facility,&target)) return false;
-    auto config=address<void*(*)(void*,uint64_t)>(0x1449ec190)(facility,item);
+    auto config=address<void*(*)(void*,uint64_t)>(0x1449f9bc0)(facility,item);
     if (!config || !field<void*>(config,0x28)) return false;
     alignas(16) std::array<char,0x70> product{};
     field<int>(product.data(),8)=1;
     field<uint64_t>(product.data(),0x48)=item;
     field<int>(product.data(),0x50)=1;
-    Vec origin{}; address<Emit>(0x144a1c6c0)(facility,&origin);
+    Vec origin{}; address<Emit>(0x144a2a990)(facility,&origin);
     void* previous=emitting; emitting=facility;
     // A synthetic one-item input exercises the real hopper worker, visual
     // entity and arrival path. It is not a replacement production launch path.
@@ -565,10 +566,10 @@ bool deliver_probe(void* facility,void* receiver,void* subsystem,void* visuals,u
 }
 bool clone_probe(void* subsystem,void* state,uint32_t key,Vec position) {
     if (!active || !subsystem || !state || !limits_for_key(key)) return false;
-    auto controller_class=address<void*(*)()>(0x1449bcb80)();
+    auto controller_class=address<void*(*)()>(0x1449ca930)();
     // Clone is a SpatialCloneState member whose typed outer is the controller.
-    if (!address<void*(*)(void*,void*)>(0x1415272f0)(state,controller_class)) return false;
-    void* info=address<void*(*)(void*,uint32_t)>(0x144a62a60)(subsystem,key);
+    if (!address<void*(*)(void*,void*)>(0x141529650)(state,controller_class)) return false;
+    void* info=address<void*(*)(void*,uint32_t)>(0x144a7c730)(subsystem,key);
     if (!info) return false;
     alignas(16) std::array<char,0x218> packet{};
     auto p=packet.data();
@@ -587,8 +588,8 @@ bool clone_probe(void* subsystem,void* state,uint32_t key,Vec position) {
 std::array<uint64_t,3> flight_stats() { return {repaired_counts[0].load(),repaired_counts[1].load(),repaired_counts[2].load()}; }
 int blueprint_place_probe(void* state,Vec position,uint8_t rotation,bool ignore_cost) {
     if (!active || !state || rotation>3) return -1;
-    auto controller_class=address<void*(*)()>(0x1449bcb80)();
-    if (!address<void*(*)(void*,void*)>(0x1415272f0)(state,controller_class)) return -1;
+    auto controller_class=address<void*(*)()>(0x1449ca930)();
+    if (!address<void*(*)(void*,void*)>(0x141529650)(state,controller_class)) return -1;
     void* selection=static_cast<char*>(state)+0x2d8;
     int count=field<int>(selection,8);
     if (count<0 || count>100000) return -1;

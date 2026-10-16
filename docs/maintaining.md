@@ -11,8 +11,9 @@ actually tested, not compatibility with whatever Steam installs next.
 1. Read this page and the [end-user README](../README.md).
 2. Follow [build.md](build.md) for a standalone build and host checks.
 3. Use [testing.md](testing.md) to make fresh disposable integration fixtures.
-4. For a game update, follow [porting.md](porting.md), using the exact old build
-   snapshot in [reference-build.json](research/1.0.4963/reference-build.json).
+4. For a game update, follow [porting.md](porting.md), using the current build
+   snapshot in [reference-build.json](research/1.1.5024/reference-build.json).
+   The previous 4963 profile remains archived in its own directory.
 5. [artifacts.md](artifacts.md) inventories small included evidence and gives
    creation steps for binaries, dumps, mappings, saves and logs not committed.
 
@@ -24,20 +25,20 @@ and is not loaded by the mod.
 
 ## Current state and release workflow
 
-The supported executable is Alchemy Factory **1.0.4963 / Steam build 25321648**,
+The supported executable is Alchemy Factory **1.1.5024 / Steam build 25991404**,
 UE **5.7.4**, Win64, Steam app **3669570**. Its SHA256 is
-`66618d029654d125723c95e8e62919f267973ad881e24abff3b80e0b355a52f8`.
+`e44fbdbd469fc42a217741da8dbcdcfa967afa245af4a21d1b305110e08d456a`.
 The tested stock loader archive is **UE4SS_v3.0.1-1161-g6eb3d9bc.zip**; the
 SDK is pinned separately in bootstrap. See the reference JSON for checksums
 and the archive/banner discrepancy. No custom UE4SS signatures, engine override
 or loader settings are needed on this tested combination. The older parent
 project's ForcePull/946 staging instructions are obsolete for this setup.
 
-0.1.7 includes the range correction, styled Inspect UI, per-save persistence,
+0.1.8 ports the native integration to game 1.1.5024; see
+[the port audit](research/1.1.5024/port-audit.md). The feature set includes the range correction, styled Inspect UI, per-save persistence,
 clone/move transfer, embedded blueprint settings, ghost previews, 0.1 m steps,
-cloud-synced companion location and MIT license. The user reported a successful
-Windows test and final integration pass; automated development primarily used
-Linux/Proton. [validation.md](validation.md) records which versions and loader
+cloud-synced companion location and MIT license. The user reported a successful Windows test for 0.1.7. The 0.1.8 port
+was tested on Linux/Proton Experimental; Windows was not rerun. [validation.md](validation.md) records which versions and loader
 builds received each check. No further feature implementation was pending when
 this handoff was written. Equivalent live arrivals for non-hopper receivers,
 long sessions and a Workshop online round trip remain coverage limits.
@@ -77,7 +78,7 @@ explicitly accepted as optional: single-PNG transport was the core requirement.
 
 `SmartCannonMaxDistance` was investigated as a possible settings store and
 rejected: it is not read by the native reach predicate and is **not saved by
-default**. Making it SaveGame would change serialization. At the pinned build,
+default**. Making it SaveGame would change serialization. At the archived 4963 build,
 its registration descriptor at `0x147a92fe0` has flags `0x0010000000010015`,
 without `CPF_SaveGame=0x01000000`; its ctor assignment at `0x1449a790f` is 500.
 The serializer/load property gates are recorded in the reference profile.
